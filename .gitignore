@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.wine/
+*.mp4
+*.exe
+*.dll
