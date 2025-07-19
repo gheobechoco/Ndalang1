@@ -104,7 +104,7 @@ export default function Home() {
         {allLessonsSorted.length === 0 && (
           <p className="text-center text-gray-500">Aucune leçon disponible pour le moment.</p>
         )}
-      </div>
+      </div> 
     </div>
   );
 }
