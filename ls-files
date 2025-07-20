@@ -1,0 +1,35 @@
+[33mcommit f6b678d844d33b761dda9594aeea90a5234324ba[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: GeoDev <moueletgeoff@gmail.com>
+Date:   Sun Jul 20 14:21:19 2025 +0100
+
+    Correction Git LFS pour les gros fichiers
+
+[33mcommit f628139bf6989a32e3b4e591886ebbba32971162[m
+Author: GeoDev <moueletgeoff@gmail.com>
+Date:   Sun Jul 20 13:55:54 2025 +0100
+
+    Ajout de Git LFS pour les gros fichiers
+
+[33mcommit 445e71e43702a1b776f5fd431f5cefab1a421232[m
+Author: GeoDev <moueletgeoff@gmail.com>
+Date:   Sun Jul 20 13:00:00 2025 +0100
+
+    Initial commit
+
+[33mcommit f6938fdc73017a057d0e97cfc3b8c9acea637827[m
+Author: GeoDev <moueletgeoff@gmail.com>
+Date:   Sat Jul 19 21:39:01 2025 +0100
+
+    second  commit
+
+[33mcommit 6bdb518cb52f3768f5f59506a1aa77017cdded7c[m
+Author: GeoDev <moueletgeoff@gmail.com>
+Date:   Sat Jul 19 20:42:56 2025 +0100
+
+    Remove large files and update .gitignore
+
+[33mcommit 47e13cdee149c951f780812becce07b875c9993e[m
+Author: GeoDev <moueletgeoff@gmail.com>
+Date:   Sat Jul 19 19:27:45 2025 +0100
+
+    first commit
