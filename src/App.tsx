@@ -1,6 +1,6 @@
 // src/App.tsx
 import  { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, } from 'react-router-dom';
 import Home from './pages/home';
 import LessonPage from './pages/LessonPage';
 import CommunityPage from './pages/CommunityPage';
@@ -15,7 +15,7 @@ import Sidebar from './components/Sidebar';
 
 function App() {
   const [showLoading, setShowLoading] = useState(true);
-  const navigate = useNavigate();
+  
 
   useEffect(() => {
     // La logique de chargement est gérée par LoadingPage.

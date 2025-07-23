@@ -7,7 +7,7 @@ import {
   UsersIcon,
   QuestionMarkCircleIcon,
   CalendarIcon,
-  StarIcon,
+  
   TrophyIcon,
   CurrencyDollarIcon,
   UserCircleIcon,

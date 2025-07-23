@@ -1,6 +1,6 @@
 // src/pages/CommunityPage.tsx
 
-import React from 'react';
+
 import { Link } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { Player } from '@lottiefiles/react-lottie-player'; // Import du composant Player de Lottie
