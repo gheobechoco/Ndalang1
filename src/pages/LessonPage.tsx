@@ -13,6 +13,7 @@ import FloatingBubblesBackground from '../components/FloatingBubblesBackground';
 
 const LOCAL_STORAGE_TOTAL_SCORE_KEY = 'ndalang_total_score';
 const LOCAL_STORAGE_COMPLETED_LESSONS_KEY = 'ndalang_completed_lessons';
+const LOCAL_STORAGE_COINS_KEY = 'ndalang_coins'; // Nouvelle clé pour les pièces
 
 // Chemin de l'animation Lottie pour l'arrière-plan des leçons
 const lottieLessonBackgroundAnimationPath = '/animations/bbfb39fe-e03e-48d9-a1ba-a6098b864d03.json';
@@ -205,9 +206,13 @@ export default function LessonPage() {
     // Calculer le pourcentage de réussite au quiz
     const quizPercentage = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
 
-    // Mise à jour du score total (logique existante)
+    // Mise à jour du score total (XP)
     const currentTotalScore = parseInt(localStorage.getItem(LOCAL_STORAGE_TOTAL_SCORE_KEY) || '0', 10);
     localStorage.setItem(LOCAL_STORAGE_TOTAL_SCORE_KEY, (currentTotalScore + score).toString());
+
+    // Mise à jour des pièces (coins) - Exemple : 10 pièces par bonne réponse
+    const currentCoins = parseInt(localStorage.getItem(LOCAL_STORAGE_COINS_KEY) || '0', 10);
+    localStorage.setItem(LOCAL_STORAGE_COINS_KEY, (currentCoins + (score * 10)).toString()); // Gagne 10 pièces par bonne réponse
 
     // Récupérer les données de complétion existantes
     const completedLessonsData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_COMPLETED_LESSONS_KEY) || '[]');
@@ -231,14 +236,14 @@ export default function LessonPage() {
     // Nouvelle logique de navigation basée sur le score du quiz
     if (score === totalQuestions) {
       // Toutes les questions sont correctes : succès total
-      setQuizCompletedMessage(`Félicitations ! Vous avez répondu correctement à toutes les ${totalQuestions} questions. Passage à la leçon suivante...`);
+      setQuizCompletedMessage(`Félicitations ! Vous avez répondu correctement à toutes les ${totalQuestions} questions et gagné ${score * 10} pièces ! Passage à la leçon suivante...`);
       // Délai avant de passer à la leçon suivante pour le que l'utilisateur lise le message
       setTimeout(() => {
         handleNext();
       }, 2000); // 2 secondes de délai
     } else {
       // Au moins une question est incorrecte : échec partiel
-      setQuizCompletedMessage(`Quiz terminé. Vous avez obtenu ${score} bonnes réponses sur ${totalQuestions}. Veuillez réviser la leçon et réessayer le quiz !`);
+      setQuizCompletedMessage(`Quiz terminé. Vous avez obtenu ${score} bonnes réponses sur ${totalQuestions} et gagné ${score * 10} pièces. Veuillez réviser la leçon et réessayer le quiz !`);
       // Le quiz est masqué, mais le bouton "Passer au Quiz" réapparaîtra si `showQuiz` est false
     }
   };

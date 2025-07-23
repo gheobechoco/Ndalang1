@@ -33,13 +33,13 @@ interface BubbleProps {
 }
 
 // Composant pour une bulle individuelle
-const Bubble: React.FC<BubbleProps> = ({ 
-  initialPosition, 
-  initialWord, 
-  bubbleColor, 
-  wordColor, 
-  languageSpecificWords, 
-  fallbackWord 
+const Bubble: React.FC<BubbleProps> = ({
+  initialPosition,
+  initialWord,
+  bubbleColor,
+  wordColor,
+  languageSpecificWords,
+  fallbackWord
 }) => {
   const meshRef = useRef<Mesh>(null!);
   const [currentPhrase, setCurrentPhrase] = useState(initialWord);
@@ -48,7 +48,7 @@ const Bubble: React.FC<BubbleProps> = ({
 
   // Fonction pour obtenir un nouveau mot aléatoire de la liste spécifique à la langue
   const getNewRandomWord = useMemo(() => () => {
-    return languageSpecificWords.length > 0 
+    return languageSpecificWords.length > 0
       ? languageSpecificWords[Math.floor(Math.random() * languageSpecificWords.length)]
       : fallbackWord;
   }, [languageSpecificWords, fallbackWord]);
@@ -58,10 +58,10 @@ const Bubble: React.FC<BubbleProps> = ({
     position.y += randomRange(0.01, 0.08) * delta;
 
     // Si la bulle sort de l'écran par le haut, la repositionne en bas avec un nouveau mot
-    if (position.y > 10) { 
-      position.y = -10; 
-      position.x = randomRange(-15, 15); 
-      position.z = randomRange(-15, 15); 
+    if (position.y > 10) {
+      position.y = -10;
+      position.x = randomRange(-15, 15);
+      position.z = randomRange(-15, 15);
       // Sélectionne un nouveau mot de la langue appropriée lors du repositionnement
       setCurrentPhrase(getNewRandomWord());
     }
@@ -77,13 +77,16 @@ const Bubble: React.FC<BubbleProps> = ({
       <meshPhysicalMaterial
         color={new Color(bubbleColor)}
         transparent
-        opacity={0.8}
-        roughness={0.1}
+        opacity={0.7} // Légèrement plus opaque pour la couleur
+        roughness={0.05} // Moins de rugosité pour plus de brillance
         metalness={0.1}
         clearcoat={1}
-        clearcoatRoughness={0.05}
+        clearcoatRoughness={0.01} // Très faible rugosité du clearcoat pour un effet vitreux
         emissive={new Color(0x000000)}
         flatShading={false}
+        transmission={0.9} // Permet à la lumière de traverser le matériau
+        ior={1.5} // Indice de réfraction (valeur typique pour le verre)
+        thickness={0.1} // Épaisseur pour l'effet de réfraction
       />
       {/* Texte 3D affiché à l'intérieur de la bulle */}
       <Text
@@ -94,7 +97,6 @@ const Bubble: React.FC<BubbleProps> = ({
         anchorY="middle"
         font="/fonts/Inter-VariableFont_opsz,wght.ttf"
         maxWidth={scale * 1.6}
-        lineHeight={1.2}
         textAlign="center"
       >
         {currentPhrase}
@@ -105,7 +107,7 @@ const Bubble: React.FC<BubbleProps> = ({
 
 // Composant principal de l'arrière-plan avec bulles flottantes
 interface FloatingBubblesBackgroundProps {
-  currentLessonLanguageCode: 'fang' | 'nzebi' | 'massango' | 'fr'; // 'massango' est correctement ajouté ici
+  currentLessonLanguageCode: 'fang' | 'nzebi' | 'massango' | 'fr' | 'massango-new'; // 'massango-new' ajouté ici
 }
 
 const FloatingBubblesBackground: React.FC<FloatingBubblesBackgroundProps> = ({ currentLessonLanguageCode }) => {
@@ -130,7 +132,7 @@ const FloatingBubblesBackground: React.FC<FloatingBubblesBackgroundProps> = ({ c
   }, [currentLessonLanguageCode]);
 
   // Mot de secours si aucune traduction n'est disponible pour la langue sélectionnée
-  const fallbackWord = 'NdaLang'; 
+  const fallbackWord = 'NdaLang';
 
   const bubbles = useMemo(() => {
     const generatedBubbles = [];
@@ -145,7 +147,7 @@ const FloatingBubblesBackground: React.FC<FloatingBubblesBackgroundProps> = ({ c
       const initialRandomPhrase = availableWordsForLanguage.length > 0
         ? availableWordsForLanguage[Math.floor(Math.random() * availableWordsForLanguage.length)]
         : fallbackWord;
-      
+
       const randomBubbleColor = gabonFlagColors[Math.floor(Math.random() * gabonFlagColors.length)];
       const randomTextColor = textColorsPalette[Math.floor(Math.random() * textColorsPalette.length)];
 
