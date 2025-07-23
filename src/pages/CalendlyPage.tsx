@@ -1,8 +1,9 @@
 // src/pages/CalendlyPage.tsx
 
-import  { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
+import { Player } from '@lottiefiles/react-lottie-player'; // Import du composant Player de Lottie
 
 // Déclarez l'interface pour le widget Calendly sur l'objet window
 declare global {
@@ -10,6 +11,8 @@ declare global {
     Calendly: any;
   }
 }
+
+const lottieAnimationDataPath = '/animations/bbfb39fe-e03e-48d9-a1ba-a6098b864d03.json'; // Chemin de votre animation Lottie
 
 export default function CalendlyPage() {
   useEffect(() => {
@@ -52,23 +55,55 @@ export default function CalendlyPage() {
   }, []); // Le tableau de dépendances vide assure que l'effet ne s'exécute qu'une seule fois au montage
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white bg-opacity-90 rounded-lg shadow-xl my-8">
-      <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6">
-        <ArrowLeftIcon className="h-5 w-5 mr-1" />
-        Retour à l'accueil
-      </Link>
+    <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* L'animation Lottie en arrière-plan (couche la plus basse) */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: -1, // S'assure que l'animation est derrière tout le reste
+        overflow: 'hidden',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#006FCD', // Couleur de fond pour correspondre au thème
+      }}>
+        <Player
+          src={lottieAnimationDataPath}
+          autoplay
+          loop
+          style={{
+            width: '120%', // Légèrement plus grand pour couvrir l'écran
+            height: '120%',
+            minWidth: '100vw',
+            minHeight: '100vh',
+            objectFit: 'cover',
+            transform: 'scale(1.2)', // Ajustement visuel si nécessaire
+          }}
+        />
+      </div>
 
-      <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
-        Réservez votre Café Linguistique
-      </h1>
+      {/* Contenu principal de la page, positionné au-dessus de l'arrière-plan */}
+      <div className="max-w-4xl mx-auto p-6 bg-white bg-opacity-90 rounded-lg shadow-xl my-8 relative z-10">
+        <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6">
+          <ArrowLeftIcon className="h-5 w-5 mr-1" />
+          Retour à l'accueil
+        </Link>
 
-      <p className="text-lg text-gray-700 mb-8 text-center">
-        Utilisez le calendrier ci-dessous pour planifier votre session de pratique de la langue Fang avec un animateur NdaLang.
-      </p>
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
+          Réservez votre Café Linguistique
+        </h1>
 
-      <div className="text-center text-gray-600">
-        Le widget de réservation Calendly apparaîtra en bas à droite de votre écran.
-        Cliquez dessus pour planifier votre session !
+        <p className="text-lg text-gray-700 mb-8 text-center">
+          Utilisez le calendrier ci-dessous pour planifier votre session de pratique de la langue Fang avec un animateur NdaLang.
+        </p>
+
+        <div className="text-center text-gray-600">
+          Le widget de réservation Calendly apparaîtra en bas à droite de votre écran.
+          Cliquez dessus pour planifier votre session !
+        </div>
       </div>
     </div>
   );
