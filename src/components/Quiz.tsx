@@ -78,7 +78,7 @@ export default function Quiz({questions, onSuccess}: QuizProps) {
                 setSelected(null); // Réinitialiser la sélection pour la prochaine question
                 setShowResult(false); // Cacher le résultat pour la prochaine question
             }
-        }, correct ? 2500 : 2000); // 2.5 secondes pour correct, 2 secondes pour incorrect
+        }, correct ? 5500 : 5000); // <-- DÉLAIS ALLONGÉS : 3.5 secondes pour correct, 3 secondes pour incorrect
     };
 
     return (

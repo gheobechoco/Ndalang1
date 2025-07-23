@@ -10,6 +10,7 @@ import { MicrophoneIcon, StopIcon, PlayIcon, ArrowPathIcon } from '@heroicons/re
 import YouTubePlayer from '../components/YouTubePlayer';
 import { Player } from '@lottiefiles/react-lottie-player';
 import FloatingBubblesBackground from '../components/FloatingBubblesBackground'; 
+import QuizFeedbackModal from '../components/QuizFeedbackModal'; // <-- NOUVEL IMPORT ICI
 
 const LOCAL_STORAGE_TOTAL_SCORE_KEY = 'ndalang_total_score';
 const LOCAL_STORAGE_COMPLETED_LESSONS_KEY = 'ndalang_completed_lessons';
@@ -25,7 +26,8 @@ export default function LessonPage() {
   const lesson = lessons[currentLessonIndex];
   const navigate = useNavigate();
   const [showQuiz, setShowQuiz] = useState(false);
-  const [quizCompletedMessage, setQuizCompletedMessage] = useState<string | null>(null);
+  // La variable quizCompletedMessage a été supprimée car elle est remplacée par quizFeedback.
+  // const [quizCompletedMessage, setQuizCompletedMessage] = useState<string | null>(null);
 
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -33,6 +35,16 @@ export default function LessonPage() {
   const [recordedAudioURL, setRecordedAudioURL] = useState<string | null>(null);
   const [activeRecordingEntryIndex, setActiveRecordingEntryIndex] = useState<number | null>(null);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
+
+  // Nouveau state pour le modal de feedback du quiz
+  const [quizFeedback, setQuizFeedback] = useState<{
+    isVisible: boolean;
+    type: 'success' | 'failure';
+    message: string;
+    score: number;
+    coinsEarned: number;
+  } | null>(null);
+
 
   // Déterminer le nom de la langue à afficher dans le tableau
   const languageDisplayName = useMemo(() => {
@@ -63,7 +75,7 @@ export default function LessonPage() {
 
   useEffect(() => {
     setShowQuiz(false);
-    setQuizCompletedMessage(null);
+    // setQuizCompletedMessage(null); // <-- SUPPRIMÉ
     setIsRecording(false);
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
@@ -76,6 +88,7 @@ export default function LessonPage() {
     }
     setRecordedAudioURL(null);
     setActiveRecordingEntryIndex(null);
+    setQuizFeedback(null); // Réinitialiser le feedback du quiz lors du changement de leçon
 
     return () => {
         if (recordedAudioURL) {
@@ -211,8 +224,9 @@ export default function LessonPage() {
     localStorage.setItem(LOCAL_STORAGE_TOTAL_SCORE_KEY, (currentTotalScore + score).toString());
 
     // Mise à jour des pièces (coins) - Exemple : 10 pièces par bonne réponse
+    const coinsEarned = score * 10; // Gagne 10 pièces par bonne réponse
     const currentCoins = parseInt(localStorage.getItem(LOCAL_STORAGE_COINS_KEY) || '0', 10);
-    localStorage.setItem(LOCAL_STORAGE_COINS_KEY, (currentCoins + (score * 10)).toString()); // Gagne 10 pièces par bonne réponse
+    localStorage.setItem(LOCAL_STORAGE_COINS_KEY, (currentCoins + coinsEarned).toString()); 
 
     // Récupérer les données de complétion existantes
     const completedLessonsData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_COMPLETED_LESSONS_KEY) || '[]');
@@ -233,18 +247,33 @@ export default function LessonPage() {
     // Sauvegarder les données de complétion mises à jour
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_LESSONS_KEY, JSON.stringify(updatedCompletedLessonsData));
 
-    // Nouvelle logique de navigation basée sur le score du quiz
+    // Définir le message et le type de feedback pour le modal
+    let feedbackMessage = '';
+    let feedbackType: 'success' | 'failure';
+
     if (score === totalQuestions) {
-      // Toutes les questions sont correctes : succès total
-      setQuizCompletedMessage(`Félicitations ! Vous avez répondu correctement à toutes les ${totalQuestions} questions et gagné ${score * 10} pièces ! Passage à la leçon suivante...`);
-      // Délai avant de passer à la leçon suivante pour le que l'utilisateur lise le message
+      feedbackMessage = `Vous avez répondu correctement à toutes les ${totalQuestions} questions et gagné ${coinsEarned} pièces !`;
+      feedbackType = 'success';
+    } else {
+      feedbackMessage = `Vous avez obtenu ${score} bonnes réponses sur ${totalQuestions} et gagné ${coinsEarned} pièces. Réessayez pour un score parfait !`;
+      feedbackType = 'failure';
+    }
+
+    setQuizFeedback({
+      isVisible: true,
+      type: feedbackType,
+      message: feedbackMessage,
+      score: score,
+      coinsEarned: coinsEarned,
+    });
+
+    // La navigation vers la leçon suivante est maintenant gérée par le modal après un succès complet
+    // Si le quiz est réussi à 100%, le modal se fermera et la navigation se fera automatiquement
+    // Sinon, le modal se fermera et l'utilisateur restera sur la leçon pour réviser
+    if (score === totalQuestions) {
       setTimeout(() => {
         handleNext();
-      }, 2000); // 2 secondes de délai
-    } else {
-      // Au moins une question est incorrecte : échec partiel
-      setQuizCompletedMessage(`Quiz terminé. Vous avez obtenu ${score} bonnes réponses sur ${totalQuestions} et gagné ${score * 10} pièces. Veuillez réviser la leçon et réessayer le quiz !`);
-      // Le quiz est masqué, mais le bouton "Passer au Quiz" réapparaîtra si `showQuiz` est false
+      }, 4000); // Délai pour que le modal soit visible avant de naviguer
     }
   };
 
@@ -269,7 +298,8 @@ export default function LessonPage() {
 
   const handleStartQuiz = () => {
     setShowQuiz(true);
-    setQuizCompletedMessage(null);
+    // setQuizCompletedMessage(null); // <-- SUPPRIMÉ
+    setQuizFeedback(null); // Clear previous feedback modal
     quizStartAudio.play().catch(e => console.error("Erreur de lecture du son de démarrage du quiz :", e));
   };
 
@@ -324,12 +354,13 @@ export default function LessonPage() {
       <div className="max-w-4xl mx-auto p-4 relative z-10 bg-white bg-opacity-80 rounded-lg shadow-lg my-8">
         <h1 className="text-2xl font-bold text-center mb-4">{lesson.title}</h1>
 
-        {quizCompletedMessage && (
+        {/* Le message de complétion du quiz est maintenant géré par le modal */}
+        {/* {quizCompletedMessage && (
           <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4" role="alert">
             <strong className="font-bold">Message du Quiz:</strong>
             <span className="block sm:inline"> {quizCompletedMessage}</span>
           </div>
-        )}
+        )} */}
 
         {!showQuiz && (
           <>
@@ -455,6 +486,18 @@ export default function LessonPage() {
           />
         )}
       </div>
+
+      {/* Modal de feedback du quiz */}
+      {quizFeedback && (
+        <QuizFeedbackModal
+          isVisible={quizFeedback.isVisible}
+          type={quizFeedback.type}
+          message={quizFeedback.message}
+          score={quizFeedback.score}
+          coinsEarned={quizFeedback.coinsEarned}
+          onClose={() => setQuizFeedback(null)} // Ferme le modal
+        />
+      )}
     </div>
   );
 }

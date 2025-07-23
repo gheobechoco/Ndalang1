@@ -9,8 +9,8 @@ import CalendlyPage from './pages/CalendlyPage';
 import PremiumPage from './pages/PremiumPage';
 import Header from './components/Header';
 import LoadingPage from './components/LoadingPage'; // Import du composant LoadingPage
-import ProfilePage from './pages/ProfilePage'; // <-- NOUVEL IMPORT : Import du composant ProfilePage
-import LeagueSimulationPage from './pages/LeagueSimulationPage'; // Import si vous l'utilisez ailleurs
+import ProfilePage from './pages/ProfilePage'; // Import du composant ProfilePage
+import LeagueSimulationPage from './pages/LeagueSimulationPage'; // Import du composant LeagueSimulationPage
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -40,8 +40,8 @@ function App() {
         <Route path="/ask-question" element={<AirtableFormPage />} />
         <Route path="/book-session" element={<CalendlyPage />} />
         <Route path="/premium" element={<PremiumPage />} />
-        <Route path="/profile" element={<ProfilePage />} /> {/* <-- NOUVELLE ROUTE : Route pour la page de profil */}
-        <Route path="/league-simulation" element={<LeagueSimulationPage />} /> {/* Exemple de route supplémentaire si nécessaire */}
+        <Route path="/profile" element={<ProfilePage />} /> {/* Route pour la page de profil */}
+        <Route path="/league-simulation" element={<LeagueSimulationPage />} /> {/* Route pour la page de simulation de ligue */}
         <Route path="*" element={<div className="text-center mt-10">Page non trouvée</div>} />
       </Routes>
     </>
