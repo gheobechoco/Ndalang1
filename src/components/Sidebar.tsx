@@ -7,12 +7,12 @@ import {
   UsersIcon,
   QuestionMarkCircleIcon,
   CalendarIcon,
-  
   TrophyIcon,
   CurrencyDollarIcon,
   UserCircleIcon,
   ChartBarIcon, // Pour la simulation de ligue
-  SparklesIcon // Pour le Premium
+  SparklesIcon, // Pour le Premium
+  ShoppingCartIcon // Pour la boutique
 } from '@heroicons/react/24/solid';
 
 const Sidebar: React.FC = () => {
@@ -46,20 +46,21 @@ const Sidebar: React.FC = () => {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
-
+  
   const navItems = [
     { name: 'Accueil', path: '/', icon: HomeIcon },
     { name: 'Profil', path: '/profile', icon: UserCircleIcon },
     { name: 'Leçons', path: '/lesson/0', icon: BookOpenIcon }, // Lien vers la première leçon
     { name: 'Ligue', path: '/league-simulation', icon: ChartBarIcon },
+    { name: 'Boutique', path: '/shop', icon: ShoppingCartIcon },
     { name: 'Communauté', path: '/community', icon: UsersIcon },
     { name: 'Poser une question', path: '/ask-question', icon: QuestionMarkCircleIcon },
     { name: 'Réserver une session', path: '/book-session', icon: CalendarIcon },
-    { name: 'Premium', path: '/premium', icon: SparklesIcon },
+    { name: 'Premium', path: '/premium', icon: SparklesIcon }, // <-- LIEN PREMIUM RÉTABLI
   ];
 
   return (
-    <div className="hidden md:flex flex-col w-64 bg-blue-800 text-white p-4 shadow-lg h-full fixed left-0 top-0 z-40">
+    <div className="flex lg:hidden flex-col w-64 bg-blue-800 text-white p-4 shadow-lg h-full fixed left-0 top-0 z-40">
       {/* Logo et Nom de l'App */}
       <Link to="/" className="flex items-center justify-center text-3xl font-bold mb-8 mt-4">
         <img
