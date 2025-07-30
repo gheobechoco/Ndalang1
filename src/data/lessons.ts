@@ -61,7 +61,7 @@ export const lessons: Lesson[] = [
     title: "Famille et relations (Fang)",
     languageCode: 'fang',
     entries: [
-      { french: "Père", vernacularTranslation: "Tata", pronunciation: "Ta-ta", audioFile: "/audios/fang_pere.mp3" }, // Supposant un fichier pere.mp3
+      { french: "Père", vernacularTranslation: "Tata", pronunciation: "Ta-ta", audioFile: "/audios/public/audios/fang_pere.mp3" }, // Supposant un fichier pere.mp3
       { french: "Mère", vernacularTranslation: "Mama", pronunciation: "Ma-ma", audioFile: "/audios/fang_mere.mp3" }, // Supposant un fichier mere.mp3
       { french: "Frère", vernacularTranslation: "Nza", pronunciation: "N-za", audioFile: "/audios/fang_frere.mp3" }, 
       { french: "Sœur", vernacularTranslation: "Zaba", pronunciation: "Za-ba", audioFile: "/audios/fang_soeur.mp3" } 
