@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { lessons } from '../data/lessons';
 import LessonNode from '../components/LessonNode'; // Import du composant LessonNode
 
-const lottieAnimationDataPath = '/animations/bbfb39fe-e03e-48d9-a1ba-a6098b864d03.json';
+const lottieAnimationDataPath = 'animations/bbfb39fe-e03e-48d9-a1ba-a6098b864d03.json';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -68,18 +68,18 @@ export default function Home() {
         backgroundColor: '#006FCD', // Couleur de fond si l'animation Lottie ne se charge pas
       }}>
         <Player
-          src={lottieAnimationDataPath}
-          autoplay
-          loop
-          style={{
-            width: '120%',
-            height: '120%',
-            minWidth: '100vw',
-            minHeight: '100vh',
-            objectFit: 'cover',
-            transform: 'scale(1.2)',
-          }}
-        />
+  src={lottieAnimationDataPath}
+  autoplay
+  loop
+  style={{
+    width: '120%',
+    height: '120%',
+    minWidth: '100vw',
+    minHeight: '100vh',
+    objectFit: 'cover',
+    transform: 'scale(1.2)',
+  }}
+/>
       </div>
 
       {/* Le contenu principal de la page d'accueil */}
