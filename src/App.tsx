@@ -101,7 +101,7 @@ function App() {
 
         <main className="flex-1 p-4 overflow-auto mt-16 md:mt-0"> {/* Ajout de mt-16 pour compenser le Header sur mobile, md:mt-0 pour desktop */}
           <Routes>
-            <Route path="/" element={<Home selectedLanguage={selectedLanguage} />} />
+            <Route path="/" element={<Home  />} />
             <Route path="/lesson/:id" element={<LessonPage />} />
             <Route path="/community" element={<CommunityPage />} />
             <Route path="/ask-question" element={<AirtableFormPage />} />
