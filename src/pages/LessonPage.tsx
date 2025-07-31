@@ -1,6 +1,6 @@
 // src/pages/LessonPage.tsx
 
-import { useParams, useNavigate } from "react-router-dom"; 
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { lessons } from "../data/lessons";
 import { quizzes } from "../data/quizzes";
@@ -9,25 +9,26 @@ import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/solid';
 import { MicrophoneIcon, StopIcon, PlayIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
 import YouTubePlayer from '../components/YouTubePlayer';
 import { Player } from '@lottiefiles/react-lottie-player';
-import FloatingBubblesBackground from '../components/FloatingBubblesBackground'; 
-import QuizFeedbackModal from '../components/QuizFeedbackModal'; // <-- NOUVEL IMPORT ICI
+import FloatingBubblesBackground from '../components/FloatingBubblesBackground';
+import QuizFeedbackModal from '../components/QuizFeedbackModal';
+import AudioPlayer from '../components/AudioPlayer';
 
 const LOCAL_STORAGE_TOTAL_SCORE_KEY = 'ndalang_total_score';
 const LOCAL_STORAGE_COMPLETED_LESSONS_KEY = 'ndalang_completed_lessons';
-const LOCAL_STORAGE_COINS_KEY = 'ndalang_coins'; // Nouvelle clé pour les pièces
+const LOCAL_STORAGE_COINS_KEY = 'ndalang_coins';
 
-// Chemin de l'animation Lottie pour l'arrière-plan des leçons
 const lottieLessonBackgroundAnimationPath = '/animations/bbfb39fe-e03e-48d9-a1ba-a6098b864d03.json';
 
 export default function LessonPage() {
   const { id } = useParams<{ id: string }>();
-  const index = parseInt(id || "0");
-  const [currentLessonIndex, setCurrentLessonIndex] = useState(index);
+  const initialIndex = parseInt(id || "0");
+  const [currentLessonIndex, setCurrentLessonIndex] = useState(
+    Math.min(Math.max(0, initialIndex), lessons.length - 1)
+  );
   const lesson = lessons[currentLessonIndex];
+
   const navigate = useNavigate();
   const [showQuiz, setShowQuiz] = useState(false);
-  // La variable quizCompletedMessage a été supprimée car elle est remplacée par quizFeedback.
-  // const [quizCompletedMessage, setQuizCompletedMessage] = useState<string | null>(null);
 
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -36,7 +37,6 @@ export default function LessonPage() {
   const [activeRecordingEntryIndex, setActiveRecordingEntryIndex] = useState<number | null>(null);
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
-  // Nouveau state pour le modal de feedback du quiz
   const [quizFeedback, setQuizFeedback] = useState<{
     isVisible: boolean;
     type: 'success' | 'failure';
@@ -45,18 +45,16 @@ export default function LessonPage() {
     coinsEarned: number;
   } | null>(null);
 
-
-  // Déterminer le nom de la langue à afficher dans le tableau
   const languageDisplayName = useMemo(() => {
-    const langCode = lesson?.languageCode || 'fr'; 
+    const langCode = lesson?.languageCode || 'fr';
     switch (langCode) {
       case 'fang': return 'Fang';
       case 'nzebi': return 'Nzébi';
-      case 'massango': return 'Massango'; 
+      case 'myene': return 'Myene';
       case 'fr': return 'Français';
-      default: return 'Langue'; 
+      default: return 'Langue';
     }
-  }, [lesson]); 
+  }, [lesson]);
 
 
   if (!lesson) {
@@ -75,7 +73,6 @@ export default function LessonPage() {
 
   useEffect(() => {
     setShowQuiz(false);
-    // setQuizCompletedMessage(null); // <-- SUPPRIMÉ
     setIsRecording(false);
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
@@ -88,7 +85,7 @@ export default function LessonPage() {
     }
     setRecordedAudioURL(null);
     setActiveRecordingEntryIndex(null);
-    setQuizFeedback(null); // Réinitialiser le feedback du quiz lors du changement de leçon
+    setQuizFeedback(null);
 
     return () => {
         if (recordedAudioURL) {
@@ -162,7 +159,7 @@ export default function LessonPage() {
         stream.getTracks().forEach(track => track.stop());
         const finalBlob = new Blob(audioChunksRef.current, { type: mimeType });
         const url = URL.createObjectURL(finalBlob);
-        
+
         setRecordedAudioURL(url);
         setIsRecording(false);
 
@@ -180,7 +177,7 @@ export default function LessonPage() {
       console.error("Erreur lors de l'accès au microphone ou de l'enregistrement:", err);
       setIsRecording(false);
       setActiveRecordingEntryIndex(null);
-      alert("Impossible d'accéder au microphone. Veuillez autoriser l'accès et vérifier la console pour plus de détails.");
+      console.error("Impossible d'accéder au microphone. Veuillez autoriser l'accès et vérifier la console pour plus de détails.");
     }
   };
 
@@ -200,7 +197,7 @@ export default function LessonPage() {
             console.log("Lecture de l'enregistrement démarrée:", url);
         }).catch(e => {
             console.error("Erreur lors du démarrage de la lecture:", e);
-            alert("Impossible de lire l'audio. Le format pourrait être incompatible ou l'audio est vide.");
+            console.error("Impossible de lire l'audio. Le format pourrait être incompatible ou l'audio est vide.");
         });
     } else {
         console.warn("audioPlayerRef.current n'est pas disponible pour la lecture.");
@@ -213,41 +210,32 @@ export default function LessonPage() {
 
   const handleQuizComplete = (score: number) => {
     setShowQuiz(false);
-    
-    // Récupérer le nombre total de questions pour le quiz actuel
+
     const totalQuestions = quizzes[currentLessonIndex]?.length || 0;
-    // Calculer le pourcentage de réussite au quiz
     const quizPercentage = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
 
-    // Mise à jour du score total (XP)
     const currentTotalScore = parseInt(localStorage.getItem(LOCAL_STORAGE_TOTAL_SCORE_KEY) || '0', 10);
     localStorage.setItem(LOCAL_STORAGE_TOTAL_SCORE_KEY, (currentTotalScore + score).toString());
 
-    // Mise à jour des pièces (coins) - Exemple : 10 pièces par bonne réponse
-    const coinsEarned = score * 10; // Gagne 10 pièces par bonne réponse
+    const coinsEarned = score * 10;
     const currentCoins = parseInt(localStorage.getItem(LOCAL_STORAGE_COINS_KEY) || '0', 10);
-    localStorage.setItem(LOCAL_STORAGE_COINS_KEY, (currentCoins + coinsEarned).toString()); 
+    localStorage.setItem(LOCAL_STORAGE_COINS_KEY, (currentCoins + coinsEarned).toString());
 
-    // Récupérer les données de complétion existantes
     const completedLessonsData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_COMPLETED_LESSONS_KEY) || '[]');
     let lessonFound = false;
     const updatedCompletedLessonsData = completedLessonsData.map((item: { id: number; progress: number }) => {
         if (item.id === lesson.id) {
             lessonFound = true;
-            // Mettre à jour la progression de la leçon existante
             return { id: lesson.id, progress: quizPercentage };
         }
         return item;
     });
 
-    // Si la leçon n'était pas encore enregistrée, l'ajouter
     if (!lessonFound) {
         updatedCompletedLessonsData.push({ id: lesson.id, progress: quizPercentage });
     }
-    // Sauvegarder les données de complétion mises à jour
     localStorage.setItem(LOCAL_STORAGE_COMPLETED_LESSONS_KEY, JSON.stringify(updatedCompletedLessonsData));
 
-    // Définir le message et le type de feedback pour le modal
     let feedbackMessage = '';
     let feedbackType: 'success' | 'failure';
 
@@ -267,23 +255,18 @@ export default function LessonPage() {
       coinsEarned: coinsEarned,
     });
 
-    // La navigation vers la leçon suivante est maintenant gérée par le modal après un succès complet
-    // Si le quiz est réussi à 100%, le modal se fermera et la navigation se fera automatiquement
-    // Sinon, le modal se fermera et l'utilisateur restera sur la leçon pour réviser
     if (score === totalQuestions) {
       setTimeout(() => {
         handleNext();
-      }, 4000); // Délai pour que le modal soit visible avant de naviguer
+      }, 4000);
     }
   };
 
   const handleNext = () => {
     if (currentLessonIndex < lessons.length - 1) {
-      // Si ce n'est pas la dernière leçon, naviguer vers la suivante
       setCurrentLessonIndex(currentLessonIndex + 1);
-      navigate(`/lesson/${currentLessonIndex + 1}`); // Mettre à jour l'URL également
+      navigate(`/lesson/${currentLessonIndex + 1}`);
     } else {
-      // C'est la dernière leçon, naviguer vers l'accueil ou une page de fin
       console.log("Dernière leçon atteinte, redirection vers l'accueil.");
       navigate("/");
     }
@@ -292,176 +275,147 @@ export default function LessonPage() {
   const handlePrevious = () => {
     if (currentLessonIndex > 0) {
       setCurrentLessonIndex(currentLessonIndex - 1);
-      navigate(`/lesson/${currentLessonIndex - 1}`); // Mettre à jour l'URL également
+      navigate(`/lesson/${currentLessonIndex - 1}`);
     }
   };
 
   const handleStartQuiz = () => {
     setShowQuiz(true);
-    // setQuizCompletedMessage(null); // <-- SUPPRIMÉ
-    setQuizFeedback(null); // Clear previous feedback modal
+    setQuizFeedback(null);
     quizStartAudio.play().catch(e => console.error("Erreur de lecture du son de démarrage du quiz :", e));
   };
 
   const hasQuizForCurrentLesson = quizzes[currentLessonIndex] && quizzes[currentLessonIndex].length > 0;
 
+
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}> {/* Conteneur pour le contenu de la leçon, au-dessus des bulles */}
-      {/* L'animation Lottie en arrière-plan (couche la plus basse) */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        zIndex: -2, // <-- TRÈS IMPORTANT : z-index le plus bas pour être en arrière-plan
-        overflow: 'hidden',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#006FCD', // Couleur de fond (Bleu du Gabon)
-      }}>
+    <div className="relative min-h-screen flex flex-col">
+      {/* Fond Lottie */}
+      <div className="fixed inset-0 z-[-2] overflow-hidden flex justify-center items-center bg-[#006FCD]">
         <Player
           src={lottieLessonBackgroundAnimationPath}
           autoplay
-          loop // L'animation se répète en boucle
-          style={{
-            width: '1000%', // <-- Largeur considérablement augmentée pour couvrir tout l'espace
-            height: '1000%', // <-- Hauteur considérablement augmentée
-            objectFit: 'cover', // Garantit que l'animation couvre l'intégralité du conteneur
-            opacity: 0.5, // <-- Opacité légèrement plus faible pour un effet plus subtil
-            transform: 'translate(-10%, 0)', // <-- Déplacement vers la gauche pour mieux couvrir l'espace
-          }}
+          loop
+          className="w-[1000%] h-[1000%] object-cover opacity-50 transform -translate-x-1/10"
         />
       </div>
 
-      {/* L'animation 3D des bulles (couche intermédiaire) */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        zIndex: -1, // <-- TRÈS IMPORTANT : z-index pour être au-dessus de Lottie mais derrière le contenu
-        pointerEvents: 'none', // Permet de cliquer à travers pour interagir avec le contenu
-      }}>
-        {/* Passage sécurisé du languageCode avec une valeur par défaut */}
+      {/* Bulles flottantes */}
+      <div className="fixed inset-0 z-[-1] pointer-events-none">
         <FloatingBubblesBackground currentLessonLanguageCode={lesson?.languageCode || 'fr'} />
       </div>
 
-
-      {/* Conteneur pour le contenu de la leçon (couche la plus haute) */}
-      <div className="max-w-4xl mx-auto p-4 relative z-10 bg-white bg-opacity-80 rounded-lg shadow-lg my-8">
-        <h1 className="text-2xl font-bold text-center mb-4">{lesson.title}</h1>
-
-        {/* Le message de complétion du quiz est maintenant géré par le modal */}
-        {/* {quizCompletedMessage && (
-          <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <strong className="font-bold">Message du Quiz:</strong>
-            <span className="block sm:inline"> {quizCompletedMessage}</span>
-          </div>
-        )} */}
+      {/* Contenu principal de la leçon */}
+      <div className="max-w-4xl w-full mx-auto p-4 relative z-10 bg-white bg-opacity-80 rounded-lg shadow-lg my-8 sm:p-6 md:p-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4">{lesson.title}</h1>
 
         {!showQuiz && (
           <>
-            {/* Section Vidéo de la Leçon (YouTube) */}
             {lesson.youtubeVideoId && (
               <div className="mb-6 bg-gray-50 p-4 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold mb-3 text-center">Regardez la vidéo de la leçon : {lesson.title}</h2>
-                <YouTubePlayer videoId={lesson.youtubeVideoId} title={`Vidéo de la leçon : ${lesson.title}`} />
-                <p className="text-center text-gray-600 mt-2 text-sm italic">
+                <h2 className="text-xl sm:text-2xl font-semibold mb-3 text-center">Regardez la vidéo de la leçon : {lesson.title}</h2>
+                <div className="aspect-w-16 aspect-h-9 w-full"> {/* Utilisation de classes de ratio d'aspect */}
+                  <YouTubePlayer videoId={lesson.youtubeVideoId} title={`Vidéo de la leçon : ${lesson.title}`} />
+                </div>
+                <p className="text-center text-gray-600 mt-2 text-sm sm:text-base italic">
                   Cette saynète vous aidera à comprendre les mots et phrases en contexte.
                   Regardez-la avant de passer aux exercices et au quiz !
                 </p>
               </div>
             )}
-            {/* Fin Section Vidéo de la Leçon */}
 
-            <table className="w-full border border-gray-300 mb-6">
-              <thead>
-                <tr className="bg-gray-200">
-                  <th className="border p-2">Français</th>
-                  {/* Utilisation dynamique du nom de la langue */}
-                  <th className="border p-2">{languageDisplayName}</th>
-                  <th className="border p-2">Prononciation</th>
-                  <th className="border p-2">Audio</th>
-                  <th className="border p-2">Votre Prononciation</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lesson.entries.map((entry, entryIndex) => (
-                  <tr key={entryIndex} className="even:bg-gray-100">
-                    <td className="border p-2">{entry.french}</td>
-                    {/* Utilisation de vernacularTranslation */}
-                    <td className="border p-2">{entry.vernacularTranslation}</td>
-                    <td className="border p-2">{entry.pronunciation}</td>
-                    <td className="border p-2">
-                      {entry.audioFile ? (
-                        <audio controls src={`/audios/${entry.audioFile}`} />
-                      ) : (
-                        <span className="text-gray-400 italic">Pas encore</span>
-                      )}
-                    </td>
-                    <td className="border p-2 text-center">
-                      {activeRecordingEntryIndex === entryIndex && isRecording ? (
-                        <button
-                          onClick={stopRecording}
-                          className="bg-red-500 text-white p-2 rounded-full inline-flex items-center justify-center animate-pulse"
-                        >
-                          <StopIcon className="h-6 w-6" />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => startRecording(entryIndex)}
-                          disabled={isRecording && activeRecordingEntryIndex !== entryIndex}
-                          className="bg-blue-500 text-white p-2 rounded-full inline-flex items-center justify-center disabled:opacity-50"
-                        >
-                          <MicrophoneIcon className="h-6 w-6" />
-                        </button>
-                      )}
-
-                      {/* Affiche le bouton de lecture et réinitialisation si l'audio enregistré est pour cette ligne et n'est pas en cours d'enregistrement */}
-                      {activeRecordingEntryIndex === entryIndex && recordedAudioURL && !isRecording && (
-                          <div className="flex items-center justify-center mt-2 space-x-2">
-                              <button
-                                  onClick={() => playRecordedAudio(recordedAudioURL)}
-                                  className="bg-green-500 text-white p-2 rounded-full inline-flex items-center justify-center"
-                              >
-                                  <PlayIcon className="h-6 w-6" />
-                              </button>
-                              <button
-                                  onClick={handleResetRecordingButton}
-                                  className="bg-gray-500 text-white p-2 rounded-full inline-flex items-center justify-center"
-                                  title="Réinitialiser l'enregistrement"
-                              >
-                                  <ArrowPathIcon className="h-6 w-6" />
-                              </button>
-                          </div>
-                      )}
-                    </td>
+            {/* Conteneur pour le tableau réactif */}
+            <div className="overflow-x-auto rounded-lg shadow-md mb-6">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                    <th className="py-3 px-6 text-left border-b border-gray-300">Français</th>
+                    <th className="py-3 px-6 text-left border-b border-gray-300">{languageDisplayName}</th>
+                    <th className="py-3 px-6 text-left border-b border-gray-300">Prononciation</th>
+                    <th className="py-3 px-6 text-center border-b border-gray-300">Audio</th>
+                    <th className="py-3 px-6 text-center border-b border-gray-300">Votre Prononciation</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="text-gray-600 text-sm font-light">
+                  {lesson.entries.map((entry, entryIndex) => (
+                    <tr key={entryIndex} className="border-b border-gray-200 hover:bg-gray-100">
+                      <td className="py-3 px-6 text-left whitespace-nowrap">{entry.french}</td>
+                      <td className="py-3 px-6 text-left whitespace-nowrap">{entry.vernacularTranslation}</td>
+                      <td className="py-3 px-6 text-left whitespace-nowrap">{entry.pronunciation}</td>
+                      <td className="py-3 px-6 text-center">
+                        {entry.audioFile ? (
+                          <AudioPlayer audioSrc={entry.audioFile} label="Écouter" />
+                        ) : (
+                          <span className="text-gray-400 italic">Pas encore</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-6 text-center">
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                          {activeRecordingEntryIndex === entryIndex && isRecording ? (
+                            <button
+                              onClick={stopRecording}
+                              className="bg-red-500 text-white p-2 rounded-full inline-flex items-center justify-center animate-pulse shadow-md"
+                              aria-label="Arrêter l'enregistrement"
+                            >
+                              <StopIcon className="h-6 w-6" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => startRecording(entryIndex)}
+                              disabled={isRecording && activeRecordingEntryIndex !== entryIndex}
+                              className="bg-blue-500 text-white p-2 rounded-full inline-flex items-center justify-center disabled:opacity-50 shadow-md hover:bg-blue-600 transition-colors"
+                              aria-label="Démarrer l'enregistrement"
+                            >
+                              <MicrophoneIcon className="h-6 w-6" />
+                            </button>
+                          )}
+
+                          {activeRecordingEntryIndex === entryIndex && recordedAudioURL && !isRecording && (
+                              <div className="flex items-center justify-center space-x-2">
+                                  <button
+                                      onClick={() => playRecordedAudio(recordedAudioURL)}
+                                      className="bg-green-500 text-white p-2 rounded-full inline-flex items-center justify-center shadow-md hover:bg-green-600 transition-colors"
+                                      aria-label="Écouter l'enregistrement"
+                                  >
+                                      <PlayIcon className="h-6 w-6" />
+                                  </button>
+                                  <button
+                                      onClick={handleResetRecordingButton}
+                                      className="bg-gray-500 text-white p-2 rounded-full inline-flex items-center justify-center shadow-md hover:bg-gray-600 transition-colors"
+                                      title="Réinitialiser l'enregistrement"
+                                      aria-label="Réinitialiser l'enregistrement"
+                                  >
+                                      <ArrowPathIcon className="h-6 w-6" />
+                                  </button>
+                              </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             <audio ref={audioPlayerRef} style={{ display: 'none' }} />
 
-            <div className="flex justify-center gap-4 mb-6">
+            {/* Boutons de navigation */}
+            <div className="flex justify-between gap-2 mt-6 flex-wrap">
               <button
-                className="bg-gray-300 text-gray-800 px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-1"
+                className="flex-1 sm:flex-none bg-gray-300 text-gray-800 px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-base flex items-center justify-center gap-2 hover:bg-gray-400 transition-colors"
                 onClick={handlePrevious}
                 disabled={currentLessonIndex === 0}
               >
-                <ArrowLeftIcon className="h-4 w-4" />
+                <ArrowLeftIcon className="h-5 w-5" />
                 <span>Précédent</span>
               </button>
               <button
-                className="bg-blue-600 text-white px-3 py-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-1"
+                className="flex-1 sm:flex-none bg-blue-600 text-white px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-base flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
                 onClick={handleNext}
                 disabled={currentLessonIndex === lessons.length - 1}
               >
                 <span>Suivant</span>
-                <ArrowRightIcon className="h-4 w-4" />
+                <ArrowRightIcon className="h-5 w-5" />
               </button>
             </div>
           </>
@@ -470,7 +424,7 @@ export default function LessonPage() {
         {hasQuizForCurrentLesson && !showQuiz && (
           <div className="flex justify-center mt-6">
             <button
-              className="bg-green-500 text-white px-6 py-3 rounded-lg text-lg font-semibold shadow-md hover:bg-green-600 transition duration-300"
+              className="bg-green-500 text-white px-8 py-4 rounded-lg text-lg sm:text-xl font-semibold shadow-md hover:bg-green-600 transition duration-300"
               onClick={handleStartQuiz}
             >
               Passer au Quiz
@@ -478,6 +432,7 @@ export default function LessonPage() {
           </div>
         )}
 
+        {/* Correction de la faute de frappe ici */}
         {hasQuizForCurrentLesson && showQuiz && (
           <Quiz
             key={currentLessonIndex}
@@ -487,7 +442,6 @@ export default function LessonPage() {
         )}
       </div>
 
-      {/* Modal de feedback du quiz */}
       {quizFeedback && (
         <QuizFeedbackModal
           isVisible={quizFeedback.isVisible}
@@ -495,7 +449,7 @@ export default function LessonPage() {
           message={quizFeedback.message}
           score={quizFeedback.score}
           coinsEarned={quizFeedback.coinsEarned}
-          onClose={() => setQuizFeedback(null)} // Ferme le modal
+          onClose={() => setQuizFeedback(null)}
         />
       )}
     </div>

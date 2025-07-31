@@ -1,191 +1,125 @@
-// src/components/FloatingBubblesBackground.tsx
-import React, { useRef, useState, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Sphere, Text } from '@react-three/drei';
-import { Vector3, Color, Mesh } from 'three';
-import { lessons } from '../data/lessons'; // Correction ici : 'type Lesson'
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 
-// Fonction utilitaire pour obtenir un nombre aléatoire dans une plage
-const randomRange = (min: number, max: number) => Math.random() * (max - min) + min;
-
-// Pre-traitement de TOUS LES MOTS ET PHRASES par langue, une seule fois au chargement
-const wordsByLanguage: { [key: string]: string[] } = {};
-lessons.forEach(lesson => {
-  if (!wordsByLanguage[lesson.languageCode]) {
-    wordsByLanguage[lesson.languageCode] = [];
-  }
-  lesson.entries.forEach(entry => {
-    // Utiliser vernacularTranslation puisque c'est le nouveau nom de la propriété
-    if (entry.vernacularTranslation && entry.vernacularTranslation.length > 0) {
-      wordsByLanguage[lesson.languageCode].push(entry.vernacularTranslation);
-    }
-  });
-});
-
-// Interface pour les propriétés d'une bulle individuelle
-interface BubbleProps {
-  initialPosition: [number, number, number];
-  initialWord: string; // Mot initial pour cette bulle
-  bubbleColor: string;
-  wordColor: string;
-  languageSpecificWords: string[]; // Liste des mots disponibles pour la langue actuelle
-  fallbackWord: string; // Mot de secours si aucune traduction n'est disponible
-}
-
-// Composant pour une bulle individuelle
-const Bubble: React.FC<BubbleProps> = ({
-  initialPosition,
-  initialWord,
-  bubbleColor,
-  wordColor,
-  languageSpecificWords,
-  fallbackWord
-}) => {
-  const meshRef = useRef<Mesh>(null!);
-  const [currentPhrase, setCurrentPhrase] = useState(initialWord);
-  const [position] = useState(() => new Vector3(...initialPosition));
-  const [scale] = useState(randomRange(0.8, 1.8));
-
-  // Fonction pour obtenir un nouveau mot aléatoire de la liste spécifique à la langue
-  const getNewRandomWord = useMemo(() => () => {
-    return languageSpecificWords.length > 0
-      ? languageSpecificWords[Math.floor(Math.random() * languageSpecificWords.length)]
-      : fallbackWord;
-  }, [languageSpecificWords, fallbackWord]);
-
-  useFrame((_state, delta) => {
-    // Fait flotter la bulle vers le haut (vitesse augmentée)
-    position.y += randomRange(0.01, 0.08) * delta;
-
-    // Si la bulle sort de l'écran par le haut, la repositionne en bas avec un nouveau mot
-    if (position.y > 10) {
-      position.y = -10;
-      position.x = randomRange(-15, 15);
-      position.z = randomRange(-15, 15);
-      // Sélectionne un nouveau mot de la langue appropriée lors du repositionnement
-      setCurrentPhrase(getNewRandomWord());
-    }
-
-    if (meshRef.current) {
-      meshRef.current.position.copy(position);
-    }
-  });
-
-  return (
-    <Sphere args={[scale, 32, 32]} ref={meshRef} position={initialPosition}>
-      {/* Matériau de la bulle : style ballon brillant */}
-      <meshPhysicalMaterial
-        color={new Color(bubbleColor)}
-        transparent
-        opacity={0.7} // Légèrement plus opaque pour la couleur
-        roughness={0.05} // Moins de rugosité pour plus de brillance
-        metalness={0.1}
-        clearcoat={1}
-        clearcoatRoughness={0.01} // Très faible rugosité du clearcoat pour un effet vitreux
-        emissive={new Color(0x000000)}
-        flatShading={false}
-        transmission={0.9} // Permet à la lumière de traverser le matériau
-        ior={1.5} // Indice de réfraction (valeur typique pour le verre)
-        thickness={0.1} // Épaisseur pour l'effet de réfraction
-      />
-      {/* Texte 3D affiché à l'intérieur de la bulle */}
-      <Text
-        position={[0, 0, 0]}
-        fontSize={scale * 0.25}
-        color={wordColor}
-        anchorX="center"
-        anchorY="middle"
-        font="/fonts/Inter-VariableFont_opsz,wght.ttf"
-        maxWidth={scale * 1.6}
-        textAlign="center"
-      >
-        {currentPhrase}
-      </Text>
-    </Sphere>
-  );
-};
-
-// Composant principal de l'arrière-plan avec bulles flottantes
+// Définition des props pour le composant
 interface FloatingBubblesBackgroundProps {
-  currentLessonLanguageCode: 'fang' | 'nzebi' | 'massango' | 'fr' | 'massango-new'; // 'massango-new' ajouté ici
+  // Mise à jour pour inclure 'myene' et supprimer 'massango'/'massango-new'
+  currentLessonLanguageCode: 'fang' | 'nzebi' | 'myene' | 'fr';
 }
 
 const FloatingBubblesBackground: React.FC<FloatingBubblesBackgroundProps> = ({ currentLessonLanguageCode }) => {
-  const numberOfBubbles = 30;
-  // Définition des couleurs exactes du drapeau gabonais
-  const gabonFlagColors = useMemo(() => [
-    '#009B48', // Vert
-    '#FCD116', // Jaune
-    '#006FCD', // Bleu
-  ], []);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [bubbles, setBubbles] = useState<Bubble[]>([]);
+  const animationFrameId = useRef<number | null>(null);
 
-  // Couleurs de texte à utiliser pour un bon contraste (blanc ou noir)
-  const textColorsPalette = useMemo(() => [
-    '#FFFFFF', // Blanc (bon sur le vert et le bleu foncé)
-    '#000000', // Noir (bon sur le jaune)
-  ], []);
-
-  // Filtrer les mots disponibles en fonction du code de langue actuel
-  const availableWordsForLanguage = useMemo(() => {
-    // S'assurer que wordsByLanguage[currentLessonLanguageCode] existe et est un tableau
-    return wordsByLanguage[currentLessonLanguageCode] || [];
+  // Définir les couleurs des bulles en fonction de la langue
+  const bubbleColors = useMemo(() => {
+    switch (currentLessonLanguageCode) {
+      case 'fang':
+        return ['rgba(255, 165, 0, 0.4)', 'rgba(255, 200, 0, 0.4)', 'rgba(255, 180, 0, 0.4)']; // Tons orangés
+      case 'nzebi':
+        return ['rgba(0, 128, 0, 0.4)', 'rgba(50, 205, 50, 0.4)', 'rgba(34, 139, 34, 0.4)']; // Tons verts
+      case 'myene': // Nouvelle couleur pour Myene
+        return ['rgba(138, 43, 226, 0.4)', 'rgba(186, 85, 211, 0.4)', 'rgba(147, 112, 219, 0.4)']; // Tons violets
+      case 'fr':
+      default:
+        return ['rgba(0, 111, 205, 0.4)', 'rgba(0, 150, 255, 0.4)', 'rgba(0, 191, 255, 0.4)']; // Tons bleus par défaut
+    }
   }, [currentLessonLanguageCode]);
 
-  // Mot de secours si aucune traduction n'est disponible pour la langue sélectionnée
-  const fallbackWord = 'NdaLang';
+  // Interface pour une bulle individuelle
+  interface Bubble {
+    x: number;
+    y: number;
+    radius: number;
+    dx: number;
+    dy: number;
+    color: string;
+  }
 
-  const bubbles = useMemo(() => {
-    const generatedBubbles = [];
-    for (let i = 0; i < numberOfBubbles; i++) {
-      const initialPosition: [number, number, number] = [
-        randomRange(-15, 15),
-        randomRange(-15, 15),
-        randomRange(-15, 15),
-      ];
+  // Fonction pour créer une nouvelle bulle
+  const createBubble = (canvas: HTMLCanvasElement): Bubble => {
+    const radius = Math.random() * 15 + 5; // Taille de 5 à 20
+    const x = Math.random() * canvas.width;
+    const y = canvas.height + radius; // Commence en bas de l'écran
+    const speed = Math.random() * 1 + 0.5; // Vitesse de 0.5 à 1.5
+    const angle = Math.random() * Math.PI / 2 + Math.PI / 4; // Angle entre 45 et 135 degrés pour monter
+    const dx = Math.cos(angle) * speed * (Math.random() > 0.5 ? 1 : -1) * 0.5; // Mouvement latéral plus doux
+    const dy = -Math.sin(angle) * speed;
+    const color = bubbleColors[Math.floor(Math.random() * bubbleColors.length)];
 
-      // Sélectionne un mot initial pour la bulle en fonction de la langue
-      const initialRandomPhrase = availableWordsForLanguage.length > 0
-        ? availableWordsForLanguage[Math.floor(Math.random() * availableWordsForLanguage.length)]
-        : fallbackWord;
+    return { x, y, radius, dx, dy, color };
+  };
 
-      const randomBubbleColor = gabonFlagColors[Math.floor(Math.random() * gabonFlagColors.length)];
-      const randomTextColor = textColorsPalette[Math.floor(Math.random() * textColorsPalette.length)];
+  // Fonction pour dessiner les bulles sur le canvas
+  const drawBubbles = (ctx: CanvasRenderingContext2D) => {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    bubbles.forEach(bubble => {
+      ctx.beginPath();
+      ctx.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
+      ctx.fillStyle = bubble.color;
+      ctx.fill();
+      ctx.closePath();
+    });
+  };
 
-      generatedBubbles.push(
-        <Bubble
-          key={i}
-          initialPosition={initialPosition}
-          initialWord={initialRandomPhrase} // Passe le mot initial
-          bubbleColor={randomBubbleColor}
-          wordColor={randomTextColor}
-          languageSpecificWords={availableWordsForLanguage} // Passe le tableau de mots spécifiques à la langue
-          fallbackWord={fallbackWord} // Passe le mot de secours
-        />
-      );
-    }
-    return generatedBubbles;
-  }, [numberOfBubbles, availableWordsForLanguage, fallbackWord, gabonFlagColors, textColorsPalette]);
+  // Fonction pour mettre à jour la position des bulles
+  const updateBubbles = (canvas: HTMLCanvasElement) => {
+    setBubbles(prevBubbles => {
+      const updatedBubbles = prevBubbles.map(bubble => {
+        bubble.x += bubble.dx;
+        bubble.y += bubble.dy;
+
+        // Réinitialiser la bulle si elle sort de l'écran
+        if (bubble.y + bubble.radius < 0 || bubble.x + bubble.radius < 0 || bubble.x - bubble.radius > canvas.width) {
+          return createBubble(canvas);
+        }
+        return bubble;
+      });
+      return updatedBubbles;
+    });
+  };
+
+  // Effet pour initialiser et animer les bulles
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Ajuster la taille du canvas à celle de la fenêtre
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      // Recréer les bulles lors du redimensionnement pour s'adapter à la nouvelle taille
+      setBubbles(Array.from({ length: 50 }, () => createBubble(canvas))); // Ajustez le nombre de bulles si nécessaire
+    };
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas(); // Appel initial
+
+    // Créer les bulles initiales
+    setBubbles(Array.from({ length: 50 }, () => createBubble(canvas)));
+
+    const animate = () => {
+      updateBubbles(canvas);
+      drawBubbles(ctx);
+      animationFrameId.current = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    // Nettoyage lors du démontage du composant
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+    };
+  }, [bubbleColors]); // Re-déclenche l'effet si les couleurs changent (donc si la langue change)
 
   return (
-    <Canvas
-      camera={{ position: [0, 0, 10], fov: 75 }}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        zIndex: -1,
-        background: 'transparent',
-      }}
-    >
-      <ambientLight intensity={0.5} />
-      <pointLight position={[15, 15, 15]} intensity={3.0} />
-      <pointLight position={[-15, -15, -15]} intensity={2.5} />
-      <directionalLight position={[0, 0, 5]} intensity={1.5} />
-
-      {bubbles}
-    </Canvas>
+    <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
   );
 };
 
