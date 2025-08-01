@@ -1,6 +1,6 @@
 // src/App.tsx
 import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom'; // Importez useNavigate
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import Home from './pages/home';
 import LessonPage from './pages/LessonPage';
 import CommunityPage from './pages/CommunityPage';
@@ -10,38 +10,40 @@ import PremiumPage from './pages/PremiumPage';
 import LeagueSimulationPage from './pages/LeagueSimulationPage';
 import ProfilePage from './pages/ProfilePage';
 import ShopPage from './pages/ShopPage';
-import LanguesPage from './pages/LanguesPage'; // Remplace LanguageSelectionPage par LanguesPage
+import LanguesPage from './pages/LanguesPage';
+import LanguageHomePage from './pages/LanguageHomePage'; // Importez le nouveau composant
+
 import Header from './components/Header';
 import LoadingPage from './components/LoadingPage';
 import Sidebar from './components/Sidebar';
 import Partenariat from './components/partenariat';
 
-// Importez les icônes de menu hamburger et de fermeture
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid';
 
 function App() {
   const [showLoading, setShowLoading] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const navigate = useNavigate(); // Initialisez le hook de navigation
+  const navigate = useNavigate();
+
+  // Correction de l'effet de redimensionnement avec la dépendance correcte
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsSidebarOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [setIsSidebarOpen]); // Correction: Ajout de setIsSidebarOpen comme dépendance
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem('ndalang_selected_language');
     if (storedLanguage) {
       setSelectedLanguage(storedLanguage);
     }
-
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setIsSidebarOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Ferme la sidebar lorsque la route change
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [window.location.pathname]);
@@ -53,8 +55,7 @@ function App() {
   const handleLanguageSelected = (languageCode: string) => {
     localStorage.setItem('ndalang_selected_language', languageCode);
     setSelectedLanguage(languageCode);
-    // Redirigez l'utilisateur vers la page d'accueil après la sélection de la langue
-    navigate('/home');
+    navigate(`/cours/${languageCode}`);
   };
 
   const toggleSidebar = () => {
@@ -66,7 +67,6 @@ function App() {
   }
 
   // La page de sélection des langues est la première chose que l'utilisateur voit si aucune langue n'est sélectionnée.
-  // J'utilise ici votre nouveau composant LanguesPage.
   if (!selectedLanguage) {
     return <LanguesPage onLanguageSelected={handleLanguageSelected} />;
   }
@@ -106,8 +106,8 @@ function App() {
         <main className="flex-1 p-4 overflow-auto mt-16 md:mt-0">
           <Routes>
             <Route path="/" element={<Home />} />
-            {/* Ajout d'une route pour la page de sélection des langues, pour la rendre accessible via la sidebar */}
             <Route path="/langues" element={<LanguesPage onLanguageSelected={handleLanguageSelected} />} />
+            <Route path="/cours/:languageCode" element={<LanguageHomePage />} />
             <Route path="/lesson/:id" element={<LessonPage />} />
             <Route path="/community" element={<CommunityPage />} />
             <Route path="/ask-question" element={<AirtableFormPage />} />

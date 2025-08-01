@@ -1,60 +1,29 @@
 // src/pages/home.tsx
 
-import React, { useEffect, useState } from 'react';
-import { Player } from '@lottiefiles/react-lottie-player';
+import  { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { lessons } from '../data/lessons';
-import LessonNode from '../components/LessonNode'; // Import du composant LessonNode
+import { Player } from '@lottiefiles/react-lottie-player';
 
-const lottieAnimationDataPath = 'animations/bbfb39fe-e03e-48d9-a1ba-a6098b864d03.json';
+const lottieAnimationDataPath = '/animations/bbfb39fe-e03e-48d9-a1ba-a6098b864d03.json';
 
 export default function Home() {
   const navigate = useNavigate();
-  // completedLessonsData est un tableau d'objets { id: number, progress: number }
-  const completedLessonsData = JSON.parse(localStorage.getItem('ndalang_completed_lessons') || '[]');
-  const [modalMessage, setModalMessage] = useState<string | null>(null);
 
-  // Fonction pour obtenir la progression d'une leçon spécifique
-  const getLessonProgress = (lessonId: number) => {
-    const lessonData = completedLessonsData.find((item: { id: number; progress: number }) => item.id === lessonId);
-    return lessonData ? lessonData.progress : 0; // Retourne le pourcentage ou 0 si non trouvé
-  };
-
-  // Filtrer et trier toutes les leçons par ID pour la progression
-  const allLessonsSorted = [...lessons].sort((a, b) => a.id - b.id);
-
-  // Trouver la première leçon non complétée et déverrouillée
-  const firstUncompletedAndUnlockedLesson = allLessonsSorted.find((lesson, index) => {
-    const isPreviousLessonCompleted = index === 0 || getLessonProgress(allLessonsSorted[index - 1].id) === 100;
-    return isPreviousLessonCompleted && getLessonProgress(lesson.id) < 100;
-  });
-
-  const allLessonsCompleted = allLessonsSorted.length > 0 && allLessonsSorted.every(lesson => getLessonProgress(lesson.id) === 100);
-
-  // Logs de débogage (maintenus pour vous aider à vérifier)
   useEffect(() => {
-    console.log("Chemin de l'animation Lottie:", lottieAnimationDataPath);
-    console.log("Données de leçons chargées (lessons.length):", lessons.length);
-    console.log("Leçons triées (allLessonsSorted.length):", allLessonsSorted.length);
-    console.log("Données de leçons complétées (completedLessonsData):", completedLessonsData);
-    console.log("Première leçon non complétée et déverrouillée:", firstUncompletedAndUnlockedLesson);
-    console.log("Toutes les leçons complétées:", allLessonsCompleted);
-  }, [allLessonsSorted.length, completedLessonsData, firstUncompletedAndUnlockedLesson, allLessonsCompleted]);
-
+    // Vérifie si une langue est déjà sélectionnée
+    const storedLanguageCode = localStorage.getItem('ndalang_selected_language');
+    if (storedLanguageCode) {
+      // Redirige directement vers la page de cours de la langue sélectionnée
+      navigate(`/cours/${storedLanguageCode}`, { replace: true });
+    }
+  }, [navigate]);
 
   const handleStartLearning = () => {
-    if (firstUncompletedAndUnlockedLesson) {
-      navigate(`/lesson/${firstUncompletedAndUnlockedLesson.id - 1}`);
-    } else if (allLessonsCompleted) {
-      setModalMessage("Félicitations ! Vous avez terminé toutes les leçons disponibles. De nouveaux chapitres arrivent bientôt !");
-    } else {
-      setModalMessage("Veuillez compléter la leçon précédente pour débloquer la suivante.");
-    }
+    navigate('/langues');
   };
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* L'animation Lottie en arrière-plan */}
       <div style={{
         position: 'fixed',
         top: 0,
@@ -66,7 +35,7 @@ export default function Home() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#006FCD', // Couleur de fond si l'animation Lottie ne se charge pas
+        backgroundColor: '#006FCD',
       }}>
         <Player
           src={lottieAnimationDataPath}
@@ -83,104 +52,23 @@ export default function Home() {
         />
       </div>
 
-      {/* Le contenu principal de la page d'accueil */}
-      <div className="max-w-2xl mx-auto p-4 relative z-10 bg-white bg-opacity-80 rounded-lg shadow-lg my-8 pt-16">
-        
-        {/* Bouton pour changer de langue - NOUVEAU */}
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={() => navigate('/langues')}
-            className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md
-                       hover:bg-blue-700 transition-colors duration-200"
-          >
-            Changer de langue
-          </button>
-        </div>
-
-        <h1 className="text-4xl font-bold text-center mb-6">Bienvenue sur NdaLang !</h1>
-        
+      <div className="max-w-2xl mx-auto p-4 relative z-10 bg-white bg-opacity-80 rounded-lg shadow-lg my-8 pt-16 text-center">
+        <h1 className="text-4xl font-bold mb-6 text-gray-900">Bienvenue sur NdaLang !</h1>
         <p className="text-lg text-gray-700 mb-8">
           Votre porte d'entrée vers l'apprentissage des langues vernaculaires du Gabon.
         </p>
-
-        {/* Bouton "Commencer l'apprentissage" avec animation */}
-        {!allLessonsCompleted && (
-          <div className="text-center mb-8">
-            <button
-              onClick={handleStartLearning}
-              className="inline-flex items-center justify-center px-8 py-4 bg-green-600 text-white font-bold text-xl rounded-full shadow-lg
-                         hover:bg-green-700 transition-all duration-300 transform hover:scale-105
-                         focus:outline-none focus:ring-4 focus:ring-green-300
-                         animate-bounce-vertical" 
-            >
-              Commencer l'apprentissage 🎉
-            </button>
-          </div>
-        )}
-
-        <h2 className="text-3xl font-semibold mb-6 text-center">Votre Parcours d'Apprentissage</h2>
-        
-        {/* Section de la carte de progression visuelle */}
-        <div className="flex flex-col items-center py-8">
-          {allLessonsSorted.map((lesson, index) => {
-            // Une leçon est verrouillée si ce n'est pas la première ET que la leçon précédente n'est pas complétée à 100%
-            const isLocked = index > 0 && getLessonProgress(allLessonsSorted[index - 1].id) < 100;
-            const isCurrentLessonCompleted = getLessonProgress(lesson.id) === 100;
-
-            return (
-              <React.Fragment key={lesson.id}>
-                {/* Le nœud de la leçon */}
-                <LessonNode
-                  title={lesson.title}
-                  isCompleted={isCurrentLessonCompleted}
-                  onClick={() => navigate(`/lesson/${lesson.id - 1}`)}
-                  languageCode={lesson.languageCode}
-                  progressPercentage={getLessonProgress(lesson.id)}
-                  isLocked={isLocked} // Passe l'état verrouillé
-                />
-                {/* Ligne de connexion entre les nœuds (sauf pour la dernière leçon) */}
-                {index < allLessonsSorted.length - 1 && (
-                  <div className={`w-1 h-16 my-2 rounded-full ${isCurrentLessonCompleted ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                )}
-              </React.Fragment>
-            );
-          })}
+        <div className="mb-8">
+          <button
+            onClick={handleStartLearning}
+            className="inline-flex items-center justify-center px-8 py-4 bg-green-600 text-white font-bold text-xl rounded-full shadow-lg
+                       hover:bg-green-700 transition-all duration-300 transform hover:scale-105
+                       focus:outline-none focus:ring-4 focus:ring-green-300
+                       animate-bounce-vertical"
+          >
+            Commencer l'apprentissage 🎉
+          </button>
         </div>
-
-        {/* Bouton "Monter de Niveau" si toutes les leçons sont complétées */}
-        {allLessonsCompleted && (
-          <div className="text-center mt-8">
-            <button
-              onClick={() => setModalMessage("Félicitations ! Vous avez terminé toutes les leçons disponibles. De nouveaux chapitres arrivent bientôt !")}
-              className="inline-flex items-center justify-center px-6 py-3 bg-red-700 text-white font-bold text-lg rounded-lg shadow-md
-                         hover:bg-red-800 transition-all duration-300 transform hover:scale-105
-                         focus:outline-none focus:ring-4 focus:ring-red-300"
-            >
-              Monter de Niveau 🎉
-            </button>
-          </div>
-        )}
-
-        {/* Message si aucune leçon n'est disponible */}
-        {allLessonsSorted.length === 0 && (
-          <p className="text-center text-gray-500">Aucune leçon disponible pour le moment.</p>
-        )}
       </div>
-
-      {/* Modal pour afficher les messages */}
-      {modalMessage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
-          <div className="bg-white p-8 rounded-lg shadow-xl max-w-sm mx-auto text-center">
-            <p className="text-lg font-semibold text-gray-800 mb-4">{modalMessage}</p>
-            <button
-              onClick={() => setModalMessage(null)}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Fermer
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
