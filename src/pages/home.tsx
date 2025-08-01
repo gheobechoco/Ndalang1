@@ -1,6 +1,6 @@
 // src/pages/home.tsx
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Player } from '@lottiefiles/react-lottie-player';
 import { useNavigate } from 'react-router-dom';
 import { lessons } from '../data/lessons';
@@ -12,6 +12,7 @@ export default function Home() {
   const navigate = useNavigate();
   // completedLessonsData est un tableau d'objets { id: number, progress: number }
   const completedLessonsData = JSON.parse(localStorage.getItem('ndalang_completed_lessons') || '[]');
+  const [modalMessage, setModalMessage] = useState<string | null>(null);
 
   // Fonction pour obtenir la progression d'une leçon spécifique
   const getLessonProgress = (lessonId: number) => {
@@ -45,9 +46,9 @@ export default function Home() {
     if (firstUncompletedAndUnlockedLesson) {
       navigate(`/lesson/${firstUncompletedAndUnlockedLesson.id - 1}`);
     } else if (allLessonsCompleted) {
-      alert("Félicitations ! Vous avez terminé toutes les leçons disponibles. De nouveaux chapitres arrivent bientôt !");
+      setModalMessage("Félicitations ! Vous avez terminé toutes les leçons disponibles. De nouveaux chapitres arrivent bientôt !");
     } else {
-      alert("Veuillez compléter la leçon précédente pour débloquer la suivante.");
+      setModalMessage("Veuillez compléter la leçon précédente pour débloquer la suivante.");
     }
   };
 
@@ -68,22 +69,34 @@ export default function Home() {
         backgroundColor: '#006FCD', // Couleur de fond si l'animation Lottie ne se charge pas
       }}>
         <Player
-  src={lottieAnimationDataPath}
-  autoplay
-  loop
-  style={{
-    width: '120%',
-    height: '120%',
-    minWidth: '100vw',
-    minHeight: '100vh',
-    objectFit: 'cover',
-    transform: 'scale(1.2)',
-  }}
-/>
+          src={lottieAnimationDataPath}
+          autoplay
+          loop
+          style={{
+            width: '120%',
+            height: '120%',
+            minWidth: '100vw',
+            minHeight: '100vh',
+            objectFit: 'cover',
+            transform: 'scale(1.2)',
+          }}
+        />
       </div>
 
       {/* Le contenu principal de la page d'accueil */}
       <div className="max-w-2xl mx-auto p-4 relative z-10 bg-white bg-opacity-80 rounded-lg shadow-lg my-8 pt-16">
+        
+        {/* Bouton pour changer de langue - NOUVEAU */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => navigate('/langues')}
+            className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md
+                       hover:bg-blue-700 transition-colors duration-200"
+          >
+            Changer de langue
+          </button>
+        </div>
+
         <h1 className="text-4xl font-bold text-center mb-6">Bienvenue sur NdaLang !</h1>
         
         <p className="text-lg text-gray-700 mb-8">
@@ -138,7 +151,7 @@ export default function Home() {
         {allLessonsCompleted && (
           <div className="text-center mt-8">
             <button
-              onClick={() => alert("Félicitations ! Vous avez terminé toutes les leçons disponibles. De nouveaux chapitres arrivent bientôt !")}
+              onClick={() => setModalMessage("Félicitations ! Vous avez terminé toutes les leçons disponibles. De nouveaux chapitres arrivent bientôt !")}
               className="inline-flex items-center justify-center px-6 py-3 bg-red-700 text-white font-bold text-lg rounded-lg shadow-md
                          hover:bg-red-800 transition-all duration-300 transform hover:scale-105
                          focus:outline-none focus:ring-4 focus:ring-red-300"
@@ -153,6 +166,21 @@ export default function Home() {
           <p className="text-center text-gray-500">Aucune leçon disponible pour le moment.</p>
         )}
       </div>
+
+      {/* Modal pour afficher les messages */}
+      {modalMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="bg-white p-8 rounded-lg shadow-xl max-w-sm mx-auto text-center">
+            <p className="text-lg font-semibold text-gray-800 mb-4">{modalMessage}</p>
+            <button
+              onClick={() => setModalMessage(null)}
+              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

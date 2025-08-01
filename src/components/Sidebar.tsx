@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 // Importez les icônes nécessaires pour la sidebar
-import { HomeIcon, BookOpenIcon, ChatBubbleLeftRightIcon, UserIcon, ShoppingCartIcon, SparklesIcon, CalendarIcon, UsersIcon, GlobeAltIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { HomeIcon, BookOpenIcon, ChatBubbleLeftRightIcon, UserIcon, ShoppingCartIcon, SparklesIcon, CalendarIcon, UsersIcon, GlobeAltIcon, XMarkIcon, BriefcaseIcon } from '@heroicons/react/24/solid';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <Link to="/" className="flex items-center px-4 py-2 hover:bg-blue-700 transition-colors duration-200 rounded-md mx-2 mb-2" onClick={onClose}>
             <HomeIcon className="h-6 w-6 mr-3" /> Accueil
           </Link>
-          <Link to="/language-selection" className="flex items-center px-4 py-2 hover:bg-blue-700 transition-colors duration-200 rounded-md mx-2 mb-2" onClick={onClose}>
+          <Link to="/langues" className="flex items-center px-4 py-2 hover:bg-blue-700 transition-colors duration-200 rounded-md mx-2 mb-2" onClick={onClose}>
             <GlobeAltIcon className="h-6 w-6 mr-3" /> Langues
           </Link>
           <Link to="/community" className="flex items-center px-4 py-2 hover:bg-blue-700 transition-colors duration-200 rounded-md mx-2 mb-2" onClick={onClose}>
@@ -62,6 +62,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </Link>
           <Link to="/premium" className="flex items-center px-4 py-2 hover:bg-blue-700 transition-colors duration-200 rounded-md mx-2 mb-2" onClick={onClose}>
             <SparklesIcon className="h-6 w-6 mr-3 text-yellow-300" /> Premium
+          </Link>
+          {/* <-- NOUVEAU LIEN PARTENARIAT AJOUTÉ ICI --> */}
+          <Link to="/partenariat" className="flex items-center px-4 py-2 hover:bg-blue-700 transition-colors duration-200 rounded-md mx-2 mb-2" onClick={onClose}>
+            <BriefcaseIcon className="h-6 w-6 mr-3" /> Partenariat
           </Link>
           <Link to="/league-simulation" className="flex items-center px-4 py-2 hover:bg-blue-700 transition-colors duration-200 rounded-md mx-2 mb-2" onClick={onClose}>
             <BookOpenIcon className="h-6 w-6 mr-3" /> Simulation

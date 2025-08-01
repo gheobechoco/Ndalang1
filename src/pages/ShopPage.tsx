@@ -1,5 +1,3 @@
-// src/pages/ShopPage.tsx
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeftIcon, CurrencyDollarIcon, FireIcon, BoltIcon } from '@heroicons/react/24/solid';
@@ -22,7 +20,7 @@ const shopItems: ShopItem[] = [
     name: 'Gel de série',
     description: 'Protège votre série de jours d\'apprentissage pour 1 jour.',
     price: 200,
-    icon: <FireIcon className="h-10 w-10 text-red-500" />,
+    icon: <FireIcon className="h-10 w-10 text-red-400" />,
     effect: 'streak_freeze',
     quantity: 1, // Une utilisation par achat
   },
@@ -31,7 +29,7 @@ const shopItems: ShopItem[] = [
     name: 'Double XP',
     description: 'Double les XP gagnés pour la prochaine leçon complétée.',
     price: 300,
-    icon: <BoltIcon className="h-10 w-10 text-yellow-500" />,
+    icon: <BoltIcon className="h-10 w-10 text-yellow-400" />,
     effect: 'double_xp',
     quantity: 1, // Une utilisation par achat
   },
@@ -41,7 +39,7 @@ const shopItems: ShopItem[] = [
   //   name: 'Vie supplémentaire',
   //   description: 'Vous donne une chance supplémentaire au quiz.',
   //   price: 150,
-  //   icon: <HeartIcon className="h-10 w-10 text-pink-500" />,
+  //   icon: <HeartIcon className="h-10 w-10 text-pink-400" />,
   //   effect: 'extra_life',
   //   quantity: 1,
   // },
@@ -95,60 +93,68 @@ export default function ShopPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white bg-opacity-90 rounded-lg shadow-xl my-8 pt-16">
-      <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6">
-        <ArrowLeftIcon className="h-5 w-5 mr-1" />
-        Retour à l'accueil
-      </Link>
+    // Arrière-plan avec un dégradé pour mettre en valeur l'effet de verre dépoli
+    <div className="min-h-screen p-4 md:p-8 font-sans bg-gradient-to-br from-purple-500 to-indigo-600">
+      
+      {/* Conteneur principal avec le style "glassmorphism" */}
+      <div className="max-w-4xl mx-auto my-8 p-6 md:p-10 lg:p-12 bg-white/30 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 transition-all duration-500 transform animate-fade-in-up">
+        
+        <Link to="/" className="inline-flex items-center text-white/80 hover:text-white transition-colors duration-300 mb-6">
+          <ArrowLeftIcon className="h-5 w-5 mr-1" />
+          Retour à l'accueil
+        </Link>
 
-      <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
-        🛍️ Boutique NdaLang
-      </h1>
+        <h1 className="text-3xl font-bold text-center mb-6 text-white animate-slide-in-down">
+          🛍️ Boutique NdaLang
+        </h1>
 
-      <div className="flex items-center justify-center mb-8 p-4 bg-yellow-100 rounded-lg shadow-md">
-        <CurrencyDollarIcon className="h-8 w-8 text-yellow-600 mr-3" />
-        <p className="text-2xl font-bold text-gray-900">
-          Vos Pièces : <span className="text-yellow-700">{totalCoins}</span>
-        </p>
-      </div>
-
-      {message && (
-        <div className={`
-          p-3 rounded-md mb-4 text-center
-          ${message.type === 'success' ? 'bg-green-100 text-green-700 border border-green-400' : ''}
-          ${message.type === 'error' ? 'bg-red-100 text-red-700 border border-red-400' : ''}
-          ${message.type === 'info' ? 'bg-blue-100 text-blue-700 border border-blue-400' : ''}
-        `}>
-          {message.text}
+        {/* Cadre des pièces avec un effet de verre */}
+        <div className="flex items-center justify-center mb-8 p-4 bg-white/20 backdrop-blur-md rounded-xl shadow-lg border border-white/30 transform transition-transform duration-300 hover:scale-105">
+          <CurrencyDollarIcon className="h-8 w-8 text-yellow-300 mr-3 animate-pulse" />
+          <p className="text-2xl font-bold text-white">
+            Vos Pièces : <span className="text-yellow-200">{totalCoins}</span>
+          </p>
         </div>
-      )}
 
-      <p className="text-lg text-gray-700 mb-8 text-center">
-        Dépensez vos pièces durement gagnées pour obtenir des avantages et améliorer votre apprentissage !
-      </p>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {shopItems.map((item) => (
-          <div key={item.id} className="bg-gray-50 p-6 rounded-lg shadow-md border border-gray-200 flex flex-col items-center text-center">
-            <div className="mb-4">{item.icon}</div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">{item.name}</h3>
-            <p className="text-gray-600 text-sm mb-4 flex-grow">{item.description}</p>
-            <div className="flex items-center justify-center mb-4">
-              <CurrencyDollarIcon className="h-6 w-6 text-yellow-600 mr-1" />
-              <span className="text-2xl font-bold text-gray-900">{item.price}</span>
-            </div>
-            <button
-              onClick={() => handlePurchase(item)}
-              disabled={totalCoins < item.price}
-              className={`
-                w-full px-4 py-2 rounded-lg text-lg font-semibold shadow-md transition duration-300
-                ${totalCoins >= item.price ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-400 text-gray-700 cursor-not-allowed'}
-              `}
-            >
-              Acheter
-            </button>
+        {message && (
+          <div className={`
+            p-3 rounded-md mb-4 text-center text-white font-medium animate-fade-in
+            ${message.type === 'success' ? 'bg-green-500/50 border border-green-300' : ''}
+            ${message.type === 'error' ? 'bg-red-500/50 border border-red-300' : ''}
+            ${message.type === 'info' ? 'bg-blue-500/50 border border-blue-300' : ''}
+          `}>
+            {message.text}
           </div>
-        ))}
+        )}
+
+        <p className="text-lg text-white/80 mb-8 text-center animate-fade-in delay-200">
+          Dépensez vos pièces durement gagnées pour obtenir des avantages et améliorer votre apprentissage !
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {shopItems.map((item) => (
+            // Cartes des articles avec un effet de verre
+            <div key={item.id} className="bg-white/10 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-white/20 flex flex-col items-center text-center transform transition-transform duration-300 hover:scale-105">
+              <div className="mb-4 transform transition-transform duration-300 hover:rotate-6">{item.icon}</div>
+              <h3 className="text-xl font-bold text-white mb-2">{item.name}</h3>
+              <p className="text-white/70 text-sm mb-4 flex-grow">{item.description}</p>
+              <div className="flex items-center justify-center mb-4">
+                <CurrencyDollarIcon className="h-6 w-6 text-yellow-300 mr-1" />
+                <span className="text-2xl font-bold text-white">{item.price}</span>
+              </div>
+              <button
+                onClick={() => handlePurchase(item)}
+                disabled={totalCoins < item.price}
+                className={`
+                  w-full px-4 py-2 rounded-lg text-lg font-semibold shadow-md transition duration-300
+                  ${totalCoins >= item.price ? 'bg-white/30 text-white hover:bg-white/40' : 'bg-white/10 text-white/50 cursor-not-allowed'}
+                `}
+              >
+                Acheter
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

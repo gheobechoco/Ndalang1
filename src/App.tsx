@@ -1,6 +1,6 @@
 // src/App.tsx
-import  { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom'; // Importez useNavigate
 import Home from './pages/home';
 import LessonPage from './pages/LessonPage';
 import CommunityPage from './pages/CommunityPage';
@@ -9,11 +9,12 @@ import CalendlyPage from './pages/CalendlyPage';
 import PremiumPage from './pages/PremiumPage';
 import LeagueSimulationPage from './pages/LeagueSimulationPage';
 import ProfilePage from './pages/ProfilePage';
-import ShopPage from './pages/ShopPage'; // Importation de la page Boutique
-import LanguageSelectionPage from './pages/LanguageSelectionPage'; // Importation de la page de sélection de la langue
-import Header from './components/Header'; // Le Header
+import ShopPage from './pages/ShopPage';
+import LanguesPage from './pages/LanguesPage'; // Remplace LanguageSelectionPage par LanguesPage
+import Header from './components/Header';
 import LoadingPage from './components/LoadingPage';
-import Sidebar from './components/Sidebar'; // Le composant Sidebar
+import Sidebar from './components/Sidebar';
+import Partenariat from './components/partenariat';
 
 // Importez les icônes de menu hamburger et de fermeture
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid';
@@ -21,7 +22,8 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/solid';
 function App() {
   const [showLoading, setShowLoading] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // État pour la sidebar mobile
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const navigate = useNavigate(); // Initialisez le hook de navigation
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem('ndalang_selected_language');
@@ -29,16 +31,14 @@ function App() {
       setSelectedLanguage(storedLanguage);
     }
 
-    // Ferme la sidebar si l'écran est redimensionné au-delà du breakpoint mobile
     const handleResize = () => {
-      if (window.innerWidth >= 768) { // Tailwind's 'md' breakpoint is 768px
+      if (window.innerWidth >= 768) {
         setIsSidebarOpen(false);
       }
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-
   }, []);
 
   // Ferme la sidebar lorsque la route change
@@ -51,7 +51,10 @@ function App() {
   };
 
   const handleLanguageSelected = (languageCode: string) => {
+    localStorage.setItem('ndalang_selected_language', languageCode);
     setSelectedLanguage(languageCode);
+    // Redirigez l'utilisateur vers la page d'accueil après la sélection de la langue
+    navigate('/home');
   };
 
   const toggleSidebar = () => {
@@ -62,8 +65,10 @@ function App() {
     return <LoadingPage onLoaded={handleLoadingComplete} />;
   }
 
+  // La page de sélection des langues est la première chose que l'utilisateur voit si aucune langue n'est sélectionnée.
+  // J'utilise ici votre nouveau composant LanguesPage.
   if (!selectedLanguage) {
-    return <LanguageSelectionPage onLanguageSelected={handleLanguageSelected} />;
+    return <LanguesPage onLanguageSelected={handleLanguageSelected} />;
   }
 
   return (
@@ -95,13 +100,14 @@ function App() {
       )}
 
       {/* Contenu principal */}
-      {/* Ajuste la marge gauche pour laisser de la place à la sidebar sur les écrans md et plus */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'} md:ml-64`}>
-        <Header /> {/* Le Header est toujours présent en haut du contenu principal */}
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${isSidebarOpen ? 'md:ml-64' : 'md:ml-64'} md:ml-64`}>
+        <Header />
 
-        <main className="flex-1 p-4 overflow-auto mt-16 md:mt-0"> {/* Ajout de mt-16 pour compenser le Header sur mobile, md:mt-0 pour desktop */}
+        <main className="flex-1 p-4 overflow-auto mt-16 md:mt-0">
           <Routes>
-            <Route path="/" element={<Home  />} />
+            <Route path="/" element={<Home />} />
+            {/* Ajout d'une route pour la page de sélection des langues, pour la rendre accessible via la sidebar */}
+            <Route path="/langues" element={<LanguesPage onLanguageSelected={handleLanguageSelected} />} />
             <Route path="/lesson/:id" element={<LessonPage />} />
             <Route path="/community" element={<CommunityPage />} />
             <Route path="/ask-question" element={<AirtableFormPage />} />
@@ -110,6 +116,7 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/league-simulation" element={<LeagueSimulationPage />} />
             <Route path="/shop" element={<ShopPage />} />
+            <Route path="/partenariat" element={<Partenariat />} />
             <Route path="*" element={<div className="text-center mt-10">Page non trouvée</div>} />
           </Routes>
         </main>

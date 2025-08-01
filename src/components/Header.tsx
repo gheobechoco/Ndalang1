@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 // Import de UserIcon, CalendarIcon, UsersIcon, TrophyIcon, CurrencyDollarIcon, ShoppingCartIcon, SparklesIcon
-import { UsersIcon, CalendarIcon, TrophyIcon, CurrencyDollarIcon, UserIcon, ShoppingCartIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import { UsersIcon, CalendarIcon, TrophyIcon, CurrencyDollarIcon, UserIcon, ShoppingCartIcon, SparklesIcon, BriefcaseIcon } from '@heroicons/react/24/solid';
 
 const Header: React.FC = () => {
   const [totalXP, setTotalXP] = useState(0);
@@ -72,6 +72,10 @@ const Header: React.FC = () => {
           {/* <-- LIEN PREMIUM AJOUTÉ ICI --> */}
           <Link to="/premium" className="flex items-center hover:text-blue-100 transition-colors duration-200">
             <SparklesIcon className="h-5 w-5 mr-1 text-yellow-300" /> Premium
+          </Link>
+          {/* <-- NOUVEAU LIEN PARTENARIAT AJOUTÉ ICI --> */}
+          <Link to="/partenariat" className="flex items-center hover:text-blue-100 transition-colors duration-200">
+            <BriefcaseIcon className="h-5 w-5 mr-1" /> Partenariat
           </Link>
         </nav>
       </div>
