@@ -1,6 +1,6 @@
 // src/pages/LanguageHomePage.tsx
 
-import React, {  useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { lessons, languageCourses } from '../data/lessons';
 import LessonNode from '../components/LessonNode';
@@ -10,9 +10,9 @@ export default function LanguageHomePage() {
   const { languageCode } = useParams<{ languageCode: string }>();
   const [modalMessage, setModalMessage] = useState<string | null>(null);
 
-  // Filtrez les leçons par le code de langue
-  const filteredLessons = lessons.filter(lesson => lesson.languageCode === languageCode);
-  const languageCourse = languageCourses.find(course => course.languageCode === languageCode);
+  // Récupérer les leçons de la langue sélectionnée
+  const filteredLessons = lessons.filter(l => l.languageCode === languageCode);
+  const languageCourse = languageCourses.find(c => c.languageCode === languageCode);
 
   if (!languageCourse) {
     return (
@@ -22,27 +22,30 @@ export default function LanguageHomePage() {
     );
   }
 
+  // Récupération des progrès
   const completedLessonsData = JSON.parse(localStorage.getItem('ndalang_completed_lessons') || '[]');
-
   const getLessonProgress = (lessonId: number) => {
     const lessonData = completedLessonsData.find((item: { id: number; progress: number }) => item.id === lessonId);
     return lessonData ? lessonData.progress : 0;
   };
 
+  // Trier les leçons par ID
   const allLessonsSorted = [...filteredLessons].sort((a, b) => a.id - b.id);
 
+  // Trouver la première leçon non complétée et débloquée
   const firstUncompletedAndUnlockedLesson = allLessonsSorted.find((lesson, index) => {
-    const isPreviousLessonCompleted = index === 0 || getLessonProgress(allLessonsSorted[index - 1].id) === 100;
-    return isPreviousLessonCompleted && getLessonProgress(lesson.id) < 100;
+    const prevCompleted = index === 0 || getLessonProgress(allLessonsSorted[index - 1].id) === 100;
+    return prevCompleted && getLessonProgress(lesson.id) < 100;
   });
 
   const allLessonsCompleted = allLessonsSorted.length > 0 && allLessonsSorted.every(lesson => getLessonProgress(lesson.id) === 100);
 
+  // Gérer le clic sur "Commencer"
   const handleStartLearning = () => {
     if (firstUncompletedAndUnlockedLesson) {
       navigate(`/lesson/${firstUncompletedAndUnlockedLesson.id}`);
     } else if (allLessonsCompleted) {
-      setModalMessage("Félicitations ! Vous avez terminé toutes les leçons disponibles pour cette langue. De nouveaux chapitres arrivent bientôt !");
+      setModalMessage("Félicitations ! Vous avez terminé toutes les leçons disponibles pour cette langue.");
     } else {
       setModalMessage("Veuillez compléter la leçon précédente pour débloquer la suivante.");
     }
@@ -63,35 +66,33 @@ export default function LanguageHomePage() {
           <div className="text-center mb-8">
             <button
               onClick={handleStartLearning}
-              className="inline-flex items-center justify-center px-8 py-4 bg-green-600 text-white font-bold text-xl rounded-full shadow-lg
-                         hover:bg-green-700 transition-all duration-300 transform hover:scale-105
-                         focus:outline-none focus:ring-4 focus:ring-green-300
-                         animate-bounce-vertical"
+              className="inline-flex items-center justify-center px-8 py-4 bg-green-600 text-white font-bold text-xl rounded-full shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300"
             >
               Commencer l'apprentissage 🎉
             </button>
           </div>
         )}
 
-        <h2 className="text-2xl font-semibold mb-6 text-center">Votre Parcours d'Apprentissage</h2>
-
+        <h2 className="text-2xl font-semibold mb-6 text-center">Votre Parcours</h2>
         <div className="flex flex-col items-center py-8">
           {allLessonsSorted.map((lesson, index) => {
             const isLocked = index > 0 && getLessonProgress(allLessonsSorted[index - 1].id) < 100;
-            const isCurrentLessonCompleted = getLessonProgress(lesson.id) === 100;
+            const isCompleted = getLessonProgress(lesson.id) === 100;
 
             return (
               <React.Fragment key={lesson.id}>
                 <LessonNode
                   title={lesson.title}
-                  isCompleted={isCurrentLessonCompleted}
-                  onClick={() => navigate(`/lesson/${lesson.id}`)}
+                  isCompleted={isCompleted}
+                  onClick={() => !isLocked && navigate(`/lesson/${lesson.id}`)}
                   languageCode={languageCode || 'fr'}
                   progressPercentage={getLessonProgress(lesson.id)}
                   isLocked={isLocked}
                 />
                 {index < allLessonsSorted.length - 1 && (
-                  <div className={`w-1 h-16 my-2 rounded-full ${isCurrentLessonCompleted ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                  <div
+                    className={`w-1 h-16 my-2 rounded-full ${isCompleted ? 'bg-green-500' : 'bg-gray-400'}`}
+                  />
                 )}
               </React.Fragment>
             );
@@ -101,10 +102,8 @@ export default function LanguageHomePage() {
         {allLessonsCompleted && (
           <div className="text-center mt-8">
             <button
-              onClick={() => setModalMessage("Félicitations ! Vous avez terminé toutes les leçons disponibles.")}
-              className="inline-flex items-center justify-center px-6 py-3 bg-red-700 text-white font-bold text-lg rounded-lg shadow-md
-                         hover:bg-red-800 transition-all duration-300 transform hover:scale-105
-                         focus:outline-none focus:ring-4 focus:ring-red-300"
+              onClick={() => setModalMessage("Bravo ! Vous avez terminé toutes les leçons disponibles.")}
+              className="inline-flex items-center justify-center px-6 py-3 bg-red-700 text-white font-bold text-lg rounded-lg shadow-md hover:bg-red-800 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-300"
             >
               Monter de Niveau 🎉
             </button>

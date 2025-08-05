@@ -14,9 +14,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     <>
       {/* Sidebar pour mobile (apparaît en overlay) */}
       <div
-        className={`fixed inset-y-0 left-0 w-64 bg-blue-800 text-white z-40 transform md:translate-x-0
-          ${isOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'}
-          transition-transform duration-300 md:static md:block md:shadow-lg`}
+       className={`${
+  isOpen ? 'block' : 'hidden'
+} fixed inset-y-0 left-0 w-64 bg-blue-800 text-white z-40 transform
+  ${isOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'}
+  transition-transform duration-300 md:translate-x-0 md:static md:block md:shadow-lg`}
       >
         <div className="p-4 flex items-center justify-between">
           {/* Ajout du logo et du texte Ndalang */}
