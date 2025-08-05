@@ -1,7 +1,6 @@
 // src/components/Sidebar.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-// Importez les icônes nécessaires pour la sidebar
 import { HomeIcon, BookOpenIcon, ChatBubbleLeftRightIcon, UserIcon, ShoppingCartIcon, SparklesIcon, CalendarIcon, UsersIcon, GlobeAltIcon, XMarkIcon, BriefcaseIcon } from '@heroicons/react/24/solid';
 
 interface SidebarProps {
@@ -14,23 +13,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     <>
       {/* Sidebar pour mobile (apparaît en overlay) */}
       <div
-       className={`${
-  isOpen ? 'block' : 'hidden'
-} fixed inset-y-0 left-0 w-64 bg-blue-800 text-white z-40 transform
-  ${isOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'}
-  transition-transform duration-300 md:translate-x-0 md:static md:block md:shadow-lg`}
+        className={`fixed inset-y-0 left-0 w-64 bg-blue-800 text-white z-40 transform transition-transform duration-300
+          md:translate-x-0 md:static md:block md:shadow-lg
+          ${isOpen ? 'translate-x-0 ease-out block' : '-translate-x-full ease-in hidden'}`}
       >
         <div className="p-4 flex items-center justify-between">
           {/* Ajout du logo et du texte Ndalang */}
           <Link to="/" className="flex items-center text-2xl font-bold text-white hover:text-blue-100 transition-colors duration-200" onClick={onClose}>
             <img
-              src="/images/Ndalang.jpeg" // Chemin vers votre logo
+              src="/images/Ndalang.jpeg"
               alt="Logo NdaLang"
-              className="h-8 w-8 mr-2 rounded-full object-cover" // Styles pour l'image
+              className="h-8 w-8 mr-2 rounded-full object-cover"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.onerror = null; // Empêche la boucle infinie en cas d'erreur
-                target.src = "https://placehold.co/32x32/000000/FFFFFF?text=NL"; // Image de remplacement si non trouvée
+                target.onerror = null;
+                target.src = "https://placehold.co/32x32/000000/FFFFFF?text=NL";
               }}
             />
             NdaLang
@@ -65,7 +62,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <Link to="/premium" className="flex items-center px-4 py-2 hover:bg-blue-700 transition-colors duration-200 rounded-md mx-2 mb-2" onClick={onClose}>
             <SparklesIcon className="h-6 w-6 mr-3 text-yellow-300" /> Premium
           </Link>
-          {/* <-- NOUVEAU LIEN PARTENARIAT AJOUTÉ ICI --> */}
           <Link to="/partenariat" className="flex items-center px-4 py-2 hover:bg-blue-700 transition-colors duration-200 rounded-md mx-2 mb-2" onClick={onClose}>
             <BriefcaseIcon className="h-6 w-6 mr-3" /> Partenariat
           </Link>
