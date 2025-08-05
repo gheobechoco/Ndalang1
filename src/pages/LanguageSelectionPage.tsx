@@ -1,7 +1,6 @@
 // src/pages/LanguageSelectionPage.tsx
-
 import { useNavigate } from 'react-router-dom';
-import { languageCourses } from '../data/lessons';
+import { languageCourses, lessons } from '../data/lessons';
 
 interface LanguageSelectionPageProps {
   onLanguageSelected: (languageCode: string) => void;
@@ -13,8 +12,19 @@ export default function LanguageSelectionPage({ onLanguageSelected }: LanguageSe
   const handleLanguageSelect = (languageCode: string) => {
     localStorage.setItem('ndalang_selected_language', languageCode);
     onLanguageSelected(languageCode);
-    // Navigate directly to first lesson of selected language if needed
-    navigate(`/langues/${languageCode}`);
+    const firstLesson = lessons.find(l => l.languageCode === languageCode);
+    if (firstLesson) {
+      navigate(`/lesson/${firstLesson.id}`);
+    } else {
+      navigate(`/cours/${languageCode}`);
+    }
+  };
+
+  // Émojis de drapeau par langue
+  const flags: Record<string, string> = {
+    fang: '🇬🇦',
+    nzebi: '🇬🇦',
+    myene: '🇬🇦',
   };
 
   return (
@@ -28,7 +38,7 @@ export default function LanguageSelectionPage({ onLanguageSelected }: LanguageSe
               onClick={() => handleLanguageSelect(course.languageCode)}
               className="p-6 bg-white/10 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 text-center cursor-pointer hover:scale-105 transition-transform"
             >
-              <div className="text-5xl mb-4">🇬🇦</div>
+              <div className="text-5xl mb-4">{flags[course.languageCode] || '🌐'}</div>
               <span className="text-xl font-bold text-white">{course.languageName}</span>
             </button>
           ))}
