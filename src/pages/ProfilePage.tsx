@@ -1,25 +1,21 @@
 // src/pages/ProfilePage.tsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeftIcon, Cog6ToothIcon, TrophyIcon, FireIcon, BoltIcon, StarIcon, CurrencyDollarIcon, BookOpenIcon, UsersIcon, PencilIcon } from '@heroicons/react/24/solid';
 import { lessons, type Lesson } from '../data/lessons';
+import { supabase } from '../../supabaseClient'; // Ensure this import is correct
 
-// Importations de DiceBear
+// DiceBear imports
 import { createAvatar } from '@dicebear/core';
 import { micah } from '@dicebear/collection';
 
-// Import du nouveau composant de fond Ballpit basé sur Three.js
-
-const LOCAL_STORAGE_USER_NAME_KEY = 'ndalang_user_name';
+// Local storage keys (still used for some non-DB persisted data like streak or local lessons progress)
 const LOCAL_STORAGE_MEMBER_SINCE_KEY = 'ndalang_member_since';
 const LOCAL_STORAGE_LAST_PRACTICE_DATE_KEY = 'ndalang_last_practice_date';
 const LOCAL_STORAGE_STREAK_KEY = 'ndalang_streak';
-const LOCAL_STORAGE_TOTAL_SCORE_KEY = 'ndalang_total_score';
-const LOCAL_STORAGE_COINS_KEY = 'ndalang_coins';
 const LOCAL_STORAGE_COMPLETED_LESSONS_KEY = 'ndalang_completed_lessons';
 const LOCAL_STORAGE_AVATAR_CONFIG_KEY = 'ndalang_avatar_config';
 
-// Définition de l'interface pour la configuration de l'avatar DiceBear
 interface AvatarConfig {
   seed: string;
   backgroundColor: string;
@@ -27,7 +23,6 @@ interface AvatarConfig {
   hairColor?: string;
 }
 
-// Composant pour rendre l'avatar DiceBear
 const AvatarDisplay: React.FC<{ config: AvatarConfig }> = ({ config }) => {
   const avatarSvg = useMemo(() => {
     const bgColor = config.backgroundColor ?? '#006FCD';
@@ -46,15 +41,17 @@ const AvatarDisplay: React.FC<{ config: AvatarConfig }> = ({ config }) => {
 
   return (
     <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center border-2 border-gray-300">
-      <img src={avatarSvg} alt="Avatar utilisateur" className="w-full h-full object-cover" />
+      <img src={avatarSvg} alt="User Avatar" className="w-full h-full object-cover" />
     </div>
   );
 };
 
-
 export default function ProfilePage() {
-  const [userName, setUserName] = useState<string>(localStorage.getItem(LOCAL_STORAGE_USER_NAME_KEY) || 'Apprenant NdaLang');
+  const [userName, setUserName] = useState<string>('Chargement...');
+  const [totalXP, setTotalXP] = useState(0);
+  const [totalCoins, setTotalCoins] = useState(0);
   const [isEditingName, setIsEditingName] = useState(false);
+  
   const [memberSince] = useState<string>(() => {
     let date = localStorage.getItem(LOCAL_STORAGE_MEMBER_SINCE_KEY);
     if (!date) {
@@ -66,9 +63,7 @@ export default function ProfilePage() {
 
   const [streak, setStreak] = useState(parseInt(localStorage.getItem(LOCAL_STORAGE_STREAK_KEY) || '0', 10));
   const [lastPracticeDate, setLastPracticeDate] = useState<string | null>(localStorage.getItem(LOCAL_STORAGE_LAST_PRACTICE_DATE_KEY));
-  const totalXP = parseInt(localStorage.getItem(LOCAL_STORAGE_TOTAL_SCORE_KEY) || '0', 10);
-  const totalCoins = parseInt(localStorage.getItem(LOCAL_STORAGE_COINS_KEY) || '0', 10);
-
+  
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const [avatarConfig, setAvatarConfig] = useState<AvatarConfig>(() => {
     const defaultAvatarConfig: AvatarConfig = {
@@ -86,7 +81,7 @@ export default function ProfilePage() {
         }
       }
     } catch (e) {
-      console.error("Erreur lors de la lecture de la configuration de l'avatar depuis localStorage:", e);
+      console.error("Error reading avatar config from localStorage:", e);
     }
     return defaultAvatarConfig;
   });
@@ -94,6 +89,57 @@ export default function ProfilePage() {
   const [showFriendFeatureMessage, setShowFriendFeatureMessage] = useState(false);
 
   const currentDivision = "Division Bronze";
+
+  const getProfile = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data, error, status } = await supabase
+          .from('profiles')
+          .select(`username, xp, coins, avatar_url`)
+          .eq('id', user.id)
+          .single();
+
+        if (error && status !== 406) {
+          console.error('Error fetching profile:', error.message);
+        }
+
+        if (data) {
+          setUserName(data.username || 'Apprenant NdaLang');
+          setTotalXP(data.xp || 0);
+          setTotalCoins(data.coins || 0);
+          if (data.avatar_url) {
+            try {
+                const parsedAvatarConfig = JSON.parse(data.avatar_url);
+                setAvatarConfig(prev => ({ ...prev, ...parsedAvatarConfig }));
+            } catch (parseError) {
+                console.warn("Couldn't parse avatar_url from DB, using default or localStorage:", parseError);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Unexpected error fetching session or profile:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    getProfile();
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        getProfile();
+      } else {
+        setUserName('Apprenant NdaLang');
+        setTotalXP(0);
+        setTotalCoins(0);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [getProfile]);
 
   const scoresByLanguage = useMemo(() => {
     const completedLessonsData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_COMPLETED_LESSONS_KEY) || '[]');
@@ -121,7 +167,7 @@ export default function ProfilePage() {
       }
     }
     return formattedScores;
-  }, [totalXP]);
+  }, []);
 
   useEffect(() => {
     const today = new Date();
@@ -150,27 +196,60 @@ export default function ProfilePage() {
     setUserName(e.target.value);
   };
 
-  const handleSaveName = () => {
-    localStorage.setItem(LOCAL_STORAGE_USER_NAME_KEY, userName);
+  const handleSaveName = async () => {
     setIsEditingName(false);
-    setAvatarConfig(prev => {
-      const newConfig = { ...prev, seed: userName || 'default-user' };
-      localStorage.setItem(LOCAL_STORAGE_AVATAR_CONFIG_KEY, JSON.stringify(newConfig));
-      return newConfig;
-    });
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ username: userName })
+          .eq('id', user.id);
+
+        if (updateError) {
+          console.error('Error updating username:', updateError.message);
+          alert("Error saving name.");
+        } else {
+          const newAvatarConfig = { ...avatarConfig, seed: userName || 'default-user' };
+          setAvatarConfig(newAvatarConfig);
+          localStorage.setItem(LOCAL_STORAGE_AVATAR_CONFIG_KEY, JSON.stringify(newAvatarConfig));
+          const { error: avatarUpdateError } = await supabase
+            .from('profiles')
+            .update({ avatar_url: JSON.stringify(newAvatarConfig) })
+            .eq('id', user.id);
+          if (avatarUpdateError) {
+            console.error('Error updating avatar URL:', avatarUpdateError.message);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error saving name or avatar:', err);
+      alert("An unexpected error occurred while saving.");
+    }
   };
 
-  const handleCancelEdit = () => {
-    setUserName(localStorage.getItem(LOCAL_STORAGE_USER_NAME_KEY) || 'Apprenant NdaLang');
+  const handleCancelEdit = async () => {
+    await getProfile();
     setIsEditingName(false);
   };
 
-  const handleAvatarChange = (part: keyof AvatarConfig, value: string) => {
-    setAvatarConfig(prev => {
-      const newConfig = { ...prev, [part]: value };
-      localStorage.setItem(LOCAL_STORAGE_AVATAR_CONFIG_KEY, JSON.stringify(newConfig));
-      return newConfig;
-    });
+  const handleAvatarChange = async (part: keyof AvatarConfig, value: string) => {
+    const newConfig = { ...avatarConfig, [part]: value };
+    setAvatarConfig(newConfig);
+    localStorage.setItem(LOCAL_STORAGE_AVATAR_CONFIG_KEY, JSON.stringify(newConfig));
+
+    try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ avatar_url: JSON.stringify(newConfig) })
+                .eq('id', user.id);
+            if (error) console.error('Error updating avatar_url in DB:', error.message);
+        }
+    } catch (err) {
+        console.error('Error fetching user for avatar update:', err);
+    }
   };
 
   const handleAddFriendClick = () => {
@@ -191,32 +270,27 @@ export default function ProfilePage() {
 
 
   return (
-    // Conteneur principal avec position relative pour que le background fixed soit relatif à lui
     <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Arrière-plan Ballpit Three.js */}
-      {/* Il est positionné en fixed et aura un z-index bas (-2) pour être derrière tout le contenu */}
       <div style={{
         position: 'fixed',
         top: 0,
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: -2, // Place le canvas derrière tout le contenu
+        zIndex: -2,
         overflow: 'hidden',
-        backgroundColor: '#006FCD', // Une couleur de fond pour éviter les zones vides
+        backgroundColor: '#006FCD',
       }}>
       </div>
 
-      {/* Contenu de la page de profil */}
-      {/* Ce div a un z-index plus élevé (z-10 de Tailwind) et un fond semi-transparent */}
-      <div className="max-w-2xl mx-auto p-6 bg-white bg-opacity-90 rounded-lg shadow-xl my-8 pt-16 relative z-10">
+      <div className="max-w-2xl mx-auto p-4 md:p-6 bg-white bg-opacity-90 rounded-lg shadow-xl my-4 md:my-8 pt-8 md:pt-16 relative z-10">
         <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6">
           <ArrowLeftIcon className="h-5 w-5 mr-1" />
           Retour à l'accueil
         </Link>
 
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
-          <div className="flex items-center">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-8 pb-4 border-b border-gray-200">
+          <div className="flex items-center mb-4 sm:mb-0">
             <div className="relative mr-4">
               <AvatarDisplay config={avatarConfig} />
               <button
@@ -228,32 +302,34 @@ export default function ProfilePage() {
               </button>
             </div>
             
-            <div>
+            <div className="text-center sm:text-left">
               {isEditingName ? (
-                <div className="flex items-center">
+                <div className="flex flex-col sm:flex-row items-center">
                   <input
                     type="text"
                     value={userName}
                     onChange={handleNameChange}
-                    className="text-3xl font-bold text-gray-900 bg-gray-100 p-1 rounded"
+                    className="text-2xl sm:text-3xl font-bold text-gray-900 bg-gray-100 p-1 rounded mb-2 sm:mb-0"
                   />
-                  <button onClick={handleSaveName} className="ml-2 px-3 py-1 bg-blue-500 text-white rounded text-sm">Sauvegarder</button>
-                  <button onClick={handleCancelEdit} className="ml-2 px-3 py-1 bg-gray-300 text-gray-800 rounded text-sm">Annuler</button>
+                  <div className="flex">
+                    <button onClick={handleSaveName} className="ml-0 sm:ml-2 px-3 py-1 bg-blue-500 text-white rounded text-sm">Sauvegarder</button>
+                    <button onClick={handleCancelEdit} className="ml-2 px-3 py-1 bg-gray-300 text-gray-800 rounded text-sm">Annuler</button>
+                  </div>
                 </div>
               ) : (
-                <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center justify-center sm:justify-start">
                   {userName}
                   <button onClick={() => setIsEditingName(true)} className="ml-2 text-blue-500 hover:text-blue-700">
                     <Cog6ToothIcon className="h-6 w-6" />
                   </button>
                 </h1>
               )}
-              <p className="text-gray-600">Membre depuis {memberSince}</p>
+              <p className="text-gray-600 text-sm sm:text-base">Membre depuis {memberSince}</p>
             </div>
           </div>
           <button
             onClick={handleAddFriendClick}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-200"
+            className="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-200"
           >
             + Ajouter des amis
           </button>
@@ -288,7 +364,7 @@ export default function ProfilePage() {
 
                 <div>
                   <label className="block text-gray-700 text-sm font-bold mb-2">Couleur de fond:</label>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-wrap gap-2">
                     {['#006FCD', '#FCD116', '#009B48', '#FF6347'].map(color => (
                       <button
                         key={color}
@@ -303,7 +379,7 @@ export default function ProfilePage() {
 
                 <div>
                   <label className="block text-gray-700 text-sm font-bold mb-2">Couleur de peau:</label>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-wrap gap-2">
                     {['#A16035', '#C68642', '#E0AC69', '#F1C27D', '#FFDBB0'].map(color => (
                       <button
                         key={color}
@@ -318,7 +394,7 @@ export default function ProfilePage() {
 
                 <div>
                   <label className="block text-gray-700 text-sm font-bold mb-2">Couleur de cheveux:</label>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-wrap gap-2">
                     {['#4A2C2A', '#6B4423', '#A0522D', '#D2B48C', '#000000'].map(color => (
                       <button
                         key={color}

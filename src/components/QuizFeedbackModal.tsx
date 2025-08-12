@@ -1,7 +1,6 @@
 // src/components/QuizFeedbackModal.tsx
 import React, { useEffect, useRef } from 'react';
 import { Player } from '@lottiefiles/react-lottie-player';
-// Suppression des imports de CheckCircleIcon et XCircleIcon car non utilisés dans le JSX
 import { TrophyIcon, CurrencyDollarIcon } from '@heroicons/react/24/solid';
 
 interface QuizFeedbackModalProps {
@@ -72,7 +71,7 @@ const QuizFeedbackModal: React.FC<QuizFeedbackModalProps> = ({
             autoplay
             loop={false} // Joue une seule fois
             className="w-32 h-32"
-            onEvent={(event: any) => {
+            onEvent={(event: string) => { // <-- Correction ici : 'any' remplacé par 'string'
               if (event === 'complete') {
                 // Optionnel: faire quelque chose après la fin de l'animation
               }

@@ -65,7 +65,8 @@ const Header: React.FC = () => {
   }, []);
 
   return (
-    <header className="flex fixed top-0 left-0 w-full bg-blue-700 bg-opacity-90 text-white p-4 shadow-lg z-50">
+    // AJOUT DE hidden md:flex ICI
+    <header className="hidden md:flex fixed top-0 left-0 w-full bg-blue-700 bg-opacity-90 text-white p-4 shadow-lg z-50">
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo + titre */}
         <Link
@@ -98,6 +99,7 @@ const Header: React.FC = () => {
         </div>
 
         {/* Dock de navigation (hover + magnification) */}
+        {/* Le Dock a déjà hidden md:flex, ce qui est correct pour lui-même */}
         <div className="hidden md:flex items-center ml-2">
           <Dock
             items={dockItems}

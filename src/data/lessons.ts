@@ -7,7 +7,7 @@ export interface LessonEntry {
   pronunciation: string;
   audioFile?: string; // facultatif
 }
-
+  
 export interface Lesson {
   id: number;
   title: string;

@@ -1,4 +1,3 @@
-// src/pages/LanguageSelectionPage.tsx
 import { useNavigate } from 'react-router-dom';
 import { languageCourses, lessons } from '../data/lessons';
 
@@ -20,7 +19,7 @@ export default function LanguageSelectionPage({ onLanguageSelected }: LanguageSe
     }
   };
 
-  // Émojis de drapeau par langue
+  // Flag emojis per language
   const flags: Record<string, string> = {
     fang: '🇬🇦',
     nzebi: '🇬🇦',

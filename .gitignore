@@ -26,3 +26,4 @@ dist-ssr
 *.mp4
 *.exe
 *.dll
+.env

@@ -1,99 +1,134 @@
-// src/pages/LeagueSimulationPage.tsx
-import  { useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeftIcon, TrophyIcon } from '@heroicons/react/24/solid';
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { lessons, languageCourses } from '../data/lessons';
+import LessonNode from '../components/LessonNode';
 
-// Interface pour un joueur simulé
-interface SimulatedPlayer {
-  id: string;
-  name: string;
-  xp: number;
-  flag: string; // Emoji de drapeau
-  isCurrentUser?: boolean; // Pour identifier l'utilisateur actuel
-}
+export default function LanguageHomePage() {
+  const { languageCode } = useParams<{ languageCode: string }>();
+  const navigate = useNavigate();
+  const [modalMessage, setModalMessage] = useState<string | null>(null);
 
-export default function LeagueSimulationPage() {
-  // Récupérer le score total de l'utilisateur actuel depuis localStorage
-  const currentUserTotalScore = parseInt(localStorage.getItem('ndalang_total_score') || '0', 10);
+  // Filter lessons for the selected language
+  const filteredLessons = lessons.filter(l => l.languageCode === languageCode);
+  const languageCourse = languageCourses.find(c => c.languageCode === languageCode);
 
-  // Joueurs simulés (données statiques pour la démo frontend)
-  const simulatedOpponents: SimulatedPlayer[] = useMemo(() => [
-    { id: 'bot1', name: 'Le Lion Indomptable', xp: 450, flag: '🇨🇲' },
-    { id: 'bot2', name: 'L’Aigle de Carthage', xp: 380, flag: '🇹🇳' },
-    { id: 'bot3', name: 'La Panthère Noire', xp: 320, flag: '🇬🇦' }, // Un clin d'œil au Gabon
-    { id: 'bot4', name: 'Le Pharaon du Nil', xp: 280, flag: '🇪🇬' },
-    { id: 'bot5', name: 'Le Guerrier Zulu', xp: 200, flag: '🇿🇦' },
-    { id: 'bot6', name: 'La Gazelle du Désert', xp: 150, flag: '🇩🇿' },
-    { id: 'bot7', name: 'Le Sorcier de Timbuktu', xp: 100, flag: '🇲🇱' },
-    { id: 'bot8', name: 'La Reine de Saba', xp: 80, flag: '🇪🇹' },
-    { id: 'bot9', name: 'L’Éléphant d’Ivoire', xp: 50, flag: '🇨🇮' },
-    { id: 'bot10', name: 'Le Dragon de Madagascar', xp: 20, flag: '🇲🇬' },
-  ], []);
+  if (!languageCourse) {
+    return <div className="text-center p-4">Langue non trouvée.</div>;
+  }
 
-  // Combiner les joueurs simulés avec l'utilisateur actuel et trier par XP
-  const leaderboard = useMemo(() => {
-    const currentUser: SimulatedPlayer = {
-      id: 'current_user',
-      name: 'Vous (NdaLang Learner)', // Nom pour l'utilisateur actuel
-      xp: currentUserTotalScore,
-      flag: '🇬🇦', // Drapeau Gabonais pour l'utilisateur
-      isCurrentUser: true,
-    };
+  // Stored progress
+  const completedLessonsData: { id: number; progress: number }[] =
+    JSON.parse(localStorage.getItem('ndalang_completed_lessons') || '[]');
 
-    const allPlayers = [...simulatedOpponents, currentUser];
-    return allPlayers.sort((a, b) => b.xp - a.xp); // Tri décroissant par XP
-  }, [currentUserTotalScore, simulatedOpponents]);
+  const getLessonProgress = (lessonId: number) => {
+    const data = completedLessonsData.find(item => item.id === lessonId);
+    return data ? data.progress : 0;
+  };
 
-  // Déterminer la division actuelle (simulation simple)
-  const divisionName = "Division Bronze"; // Pour la simulation, restons simple
-  const promotionThreshold = 3; // Les 3 premiers sont promus (arbitraire)
-  const daysRemaining = 3; // Jours restants dans la "semaine" de ligue simulée
+  // Sort by ID
+  const allLessonsSorted = [...filteredLessons].sort((a, b) => a.id - b.id);
+
+  // First uncompleted and unlocked lesson
+  const firstUncompletedAndUnlocked = allLessonsSorted.find((lesson, idx) => {
+    const prevDone = idx === 0 || getLessonProgress(allLessonsSorted[idx - 1].id) === 100;
+    return prevDone && getLessonProgress(lesson.id) < 100;
+  });
+
+  const allCompleted =
+    allLessonsSorted.length > 0 &&
+    allLessonsSorted.every(lesson => getLessonProgress(lesson.id) === 100);
+
+  const handleStartLearning = () => {
+    if (firstUncompletedAndUnlocked) {
+      navigate(`/lesson/${firstUncompletedAndUnlocked.id}`);
+    } else if (allCompleted) {
+      setModalMessage(
+        "Bravo ! Vous avez terminé toutes les leçons disponibles pour cette langue."
+      );
+    } else {
+      setModalMessage(
+        "Veuillez compléter la leçon précédente pour débloquer la suivante."
+      );
+    }
+  };
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white bg-opacity-90 rounded-lg shadow-xl my-8 pt-16">
-      <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6">
-        <ArrowLeftIcon className="h-5 w-5 mr-1" />
-        Retour à l'accueil
-      </Link>
-
-      <h1 className="text-3xl font-bold text-center mb-4 text-gray-900 flex items-center justify-center">
-        <TrophyIcon className="h-8 w-8 text-yellow-500 mr-2" />
-        {divisionName}
+    <div className="max-w-4xl mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-4 text-center">
+        {languageCourse.languageName}
       </h1>
-      <p className="text-sm text-gray-600 text-center mb-6">
-        Les {promotionThreshold} premiers rejoignent la division supérieure.
-        <span className="block mt-1 font-semibold">{daysRemaining} JOURS RESTANTS</span>
-      </p>
 
-      <div className="space-y-3">
-        {leaderboard.map((player, index) => (
-          <div
-            key={player.id}
-            className={`
-              flex items-center justify-between p-3 rounded-lg shadow-sm
-              ${player.isCurrentUser ? 'bg-blue-100 border-2 border-blue-500 font-bold' : 'bg-gray-50 border border-gray-200'}
-              ${index < promotionThreshold && !player.isCurrentUser ? 'bg-yellow-50 border-2 border-yellow-400' : ''}
-              ${index < promotionThreshold && player.isCurrentUser ? 'bg-green-100 border-2 border-green-500' : ''}
-            `}
+      {filteredLessons.length > 0 && (
+        <div className="text-center mb-8">
+          <button
+            onClick={handleStartLearning}
+            className="inline-flex items-center justify-center px-8 py-4 bg-green-600 text-white font-bold text-xl rounded-full shadow-lg hover:bg-green-700 transition duration-300 transform hover:scale-105 focus:ring-4 focus:ring-green-300"
           >
-            <div className="flex items-center">
-              <span className={`text-xl font-extrabold mr-3 ${index < promotionThreshold ? 'text-yellow-600' : 'text-gray-600'}`}>
-                {index + 1}.
-              </span>
-              <span className="text-2xl mr-3">{player.flag}</span>
-              <span className="text-lg text-gray-800">{player.name}</span>
-            </div>
-            <span className={`text-xl font-bold ${player.isCurrentUser ? 'text-blue-700' : 'text-green-600'}`}>
-              {player.xp} XP
-            </span>
-          </div>
-        ))}
+            Commencer l'apprentissage 🎉
+          </button>
+        </div>
+      )}
+
+      <h2 className="text-2xl font-semibold mb-6 text-center">
+        Votre Parcours
+      </h2>
+      <div className="flex flex-col items-center py-8">
+        {allLessonsSorted.map((lesson, idx) => {
+          const prevDone =
+            idx === 0 || getLessonProgress(allLessonsSorted[idx - 1].id) === 100;
+          const isLocked = !prevDone;
+          const progress = getLessonProgress(lesson.id);
+
+          return (
+            <React.Fragment key={lesson.id}>
+              <LessonNode
+                title={lesson.title}
+                isCompleted={progress === 100}
+                onClick={() => !isLocked && navigate(`/lesson/${lesson.id}`)}
+                languageCode={languageCode || 'fr'}
+                progressPercentage={progress}
+                isLocked={isLocked}
+              />
+              {idx < allLessonsSorted.length - 1 && (
+                <div
+                  className={`w-1 h-16 my-2 rounded-full ${
+                    progress === 100 ? 'bg-green-500' : 'bg-gray-400'
+                  }`}
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
 
-      <p className="text-sm text-gray-500 mt-8 text-center italic">
-        Ceci est une simulation de ligue. Votre score est basé sur votre progression locale.
-        Une fonctionnalité de ligue réelle nécessiterait un backend.
-      </p>
+      {allCompleted && (
+        <div className="text-center mt-8">
+          <button
+            onClick={() =>
+              setModalMessage(
+                "Bravo ! Vous avez terminé toutes les leçons disponibles."
+              )
+            }
+            className="inline-flex items-center justify-center px-6 py-3 bg-red-700 text-white font-bold text-lg rounded-lg shadow-md hover:bg-red-800 transition duration-300 transform hover:scale-105 focus:ring-4 focus:ring-red-300"
+          >
+            Monter de Niveau 🎉
+          </button>
+        </div>
+      )}
+
+      {modalMessage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm text-center">
+            <p className="mb-4">{modalMessage}</p>
+            <button
+              onClick={() => setModalMessage(null)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

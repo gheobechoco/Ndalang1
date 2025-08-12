@@ -1,4 +1,3 @@
-// src/components/Sidebar.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { HomeIcon, BookOpenIcon, ChatBubbleLeftRightIcon, UserIcon, ShoppingCartIcon, SparklesIcon, CalendarIcon, UsersIcon, GlobeAltIcon, XMarkIcon, BriefcaseIcon } from '@heroicons/react/24/solid';
@@ -14,8 +13,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Sidebar pour mobile (apparaît en overlay) */}
       <div
         className={`fixed inset-y-0 left-0 w-64 bg-blue-800 text-white z-40 transform transition-transform duration-300
-          md:translate-x-0 md:static md:block md:shadow-lg
-          ${isOpen ? 'translate-x-0 ease-out block' : '-translate-x-full ease-in hidden'}`}
+          md:hidden ${isOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'}`}
       >
         <div className="p-4 flex items-center justify-between">
           {/* Ajout du logo et du texte Ndalang */}
@@ -32,8 +30,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             />
             NdaLang
           </Link>
-          {/* Bouton de fermeture pour mobile */}
-          <button onClick={onClose} className="text-white focus:outline-none md:hidden">
+          {/* Bouton de fermeture pour mobile (toujours visible dans la sidebar ouverte sur mobile) */}
+          <button onClick={onClose} className="text-white focus:outline-none">
             <XMarkIcon className="h-7 w-7" />
           </button>
         </div>

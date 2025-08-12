@@ -71,7 +71,8 @@ export default function ShopPage() {
       localStorage.setItem('ndalang_coins', newCoins.toString());
 
       // Gérer l'effet de l'article acheté (pour l'instant, simple log ou mise à jour localStorage)
-      let purchasedItems = JSON.parse(localStorage.getItem('ndalang_purchased_items') || '[]');
+      // Correction ici : 'let' remplacé par 'const'
+      const purchasedItems = JSON.parse(localStorage.getItem('ndalang_purchased_items') || '[]');
       const existingItemIndex = purchasedItems.findIndex((i: ShopItem) => i.id === item.id);
 
       if (existingItemIndex !== -1) {
@@ -95,10 +96,10 @@ export default function ShopPage() {
   return (
     // Arrière-plan avec un dégradé pour mettre en valeur l'effet de verre dépoli
     <div className="min-h-screen p-4 md:p-8 font-sans bg-gradient-to-br from-purple-500 to-indigo-600">
-      
+
       {/* Conteneur principal avec le style "glassmorphism" */}
       <div className="max-w-4xl mx-auto my-8 p-6 md:p-10 lg:p-12 bg-white/30 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 transition-all duration-500 transform animate-fade-in-up">
-        
+
         <Link to="/" className="inline-flex items-center text-white/80 hover:text-white transition-colors duration-300 mb-6">
           <ArrowLeftIcon className="h-5 w-5 mr-1" />
           Retour à l'accueil

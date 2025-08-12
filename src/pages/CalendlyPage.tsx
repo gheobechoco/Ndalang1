@@ -6,9 +6,20 @@ import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { Player } from '@lottiefiles/react-lottie-player'; // Import du composant Player de Lottie
 
 // Déclarez l'interface pour le widget Calendly sur l'objet window
+interface CalendlyWidget {
+  initBadgeWidget: (options: {
+    url: string;
+    text: string;
+    color: string;
+    textColor: string;
+    branding: boolean;
+  }) => void;
+  // Si d'autres méthodes ou propriétés de Calendly sont utilisées, ajoutez-les ici.
+}
+
 declare global {
   interface Window {
-    Calendly: any;
+    Calendly: CalendlyWidget; // <-- Correction ici : 'any' remplacé par 'CalendlyWidget'
   }
 }
 
