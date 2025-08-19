@@ -14,7 +14,7 @@ export interface Lesson {
   description: string; // Ajouté pour la description de la leçon
   languageName: string; // Ajouté pour le nom complet de la langue
   // Code de la langue de la leçon pour une meilleure organisation
-  languageCode: 'fang' | 'nzebi' | 'myene' | 'fr'; // 'massango' remplacé par 'myene'
+  languageCode: 'fang' | 'guissir' | 'myene' | 'fr'; // 'massango' remplacé par 'myene'
   entries: LessonEntry[];
   youtubeVideoId?: string; // ID de la vidéo YouTube pour la leçon
 }

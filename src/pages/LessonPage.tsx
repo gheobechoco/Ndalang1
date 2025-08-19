@@ -7,7 +7,6 @@
   import Quiz from "../components/Quiz";
   import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/solid';
   import { MicrophoneIcon, StopIcon, PlayIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
-  import YouTubePlayer from '../components/YouTubePlayer';
   import { Player } from '@lottiefiles/react-lottie-player';
   import FloatingBubblesBackground from '../components/FloatingBubblesBackground';
   import QuizFeedbackModal from '../components/QuizFeedbackModal';
@@ -55,7 +54,7 @@ export default function LessonPage() {
       const langCode = lesson?.languageCode || 'fr';
       switch (langCode) {
         case 'fang': return 'Fang';
-        case 'nzebi': return 'Nzébi';
+        case 'guissir': return 'Guissir';
         case 'myene': return 'Myene';
         case 'fr': return 'Français';
         default: return 'Langue';
@@ -328,18 +327,6 @@ export default function LessonPage() {
 
           {!showQuiz && (
             <>
-              {lesson.youtubeVideoId && (
-                <div className="mb-6 bg-gray-50 p-4 rounded-lg shadow-sm">
-                  <h2 className="text-xl sm:text-2xl font-semibold mb-3 text-center">Regardez la vidéo de la leçon : {lesson.title}</h2>
-                  <div className="aspect-w-16 aspect-h-9 w-full"> {/* Utilisation de classes de ratio d'aspect */}
-                    <YouTubePlayer videoId={lesson.youtubeVideoId} title={`Vidéo de la leçon : ${lesson.title}`} />
-                  </div>
-                  <p className="text-center text-gray-600 mt-2 text-sm sm:text-base italic">
-                    Cette saynète vous aidera à comprendre les mots et phrases en contexte.
-                    Regardez-la avant de passer aux exercices et au quiz !
-                  </p>
-                </div>
-              )}
 
               {/* Conteneur pour le tableau réactif */}
               <div className="overflow-x-auto rounded-lg shadow-md mb-6">
