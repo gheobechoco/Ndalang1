@@ -1,20 +1,20 @@
 // src/pages/ProfilePage.tsx
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeftIcon, Cog6ToothIcon, TrophyIcon, FireIcon, BoltIcon, StarIcon, CurrencyDollarIcon, BookOpenIcon, UsersIcon, PencilIcon } from '@heroicons/react/24/solid';
 import { lessons, type Lesson } from '../data/lessons';
-import { supabase } from '../../supabaseClient'; // Ensure this import is correct
 
 // DiceBear imports
 import { createAvatar } from '@dicebear/core';
 import { micah } from '@dicebear/collection';
 
-// Local storage keys (still used for some non-DB persisted data like streak or local lessons progress)
+// Local storage keys
 const LOCAL_STORAGE_MEMBER_SINCE_KEY = 'ndalang_member_since';
 const LOCAL_STORAGE_LAST_PRACTICE_DATE_KEY = 'ndalang_last_practice_date';
 const LOCAL_STORAGE_STREAK_KEY = 'ndalang_streak';
 const LOCAL_STORAGE_COMPLETED_LESSONS_KEY = 'ndalang_completed_lessons';
 const LOCAL_STORAGE_AVATAR_CONFIG_KEY = 'ndalang_avatar_config';
+const LOCAL_STORAGE_USERNAME_KEY = 'ndalang_username'; // Nouvelle clé pour le nom d'utilisateur
 
 interface AvatarConfig {
   seed: string;
@@ -47,9 +47,12 @@ const AvatarDisplay: React.FC<{ config: AvatarConfig }> = ({ config }) => {
 };
 
 export default function ProfilePage() {
-  const [userName, setUserName] = useState<string>('Chargement...');
-  const [totalXP, setTotalXP] = useState(0);
-  const [totalCoins, setTotalCoins] = useState(0);
+  const [userName, setUserName] = useState<string>(() => {
+    return localStorage.getItem(LOCAL_STORAGE_USERNAME_KEY) || 'Apprenant NdaLang';
+  });
+  
+  const [totalXP] = useState(0);
+  const [totalCoins] = useState(0);
   const [isEditingName, setIsEditingName] = useState(false);
   
   const [memberSince] = useState<string>(() => {
@@ -89,57 +92,6 @@ export default function ProfilePage() {
   const [showFriendFeatureMessage, setShowFriendFeatureMessage] = useState(false);
 
   const currentDivision = "Division Bronze";
-
-  const getProfile = useCallback(async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        const { data, error, status } = await supabase
-          .from('profiles')
-          .select(`username, xp, coins, avatar_url`)
-          .eq('id', user.id)
-          .single();
-
-        if (error && status !== 406) {
-          console.error('Error fetching profile:', error.message);
-        }
-
-        if (data) {
-          setUserName(data.username || 'Apprenant NdaLang');
-          setTotalXP(data.xp || 0);
-          setTotalCoins(data.coins || 0);
-          if (data.avatar_url) {
-            try {
-                const parsedAvatarConfig = JSON.parse(data.avatar_url);
-                setAvatarConfig(prev => ({ ...prev, ...parsedAvatarConfig }));
-            } catch (parseError) {
-                console.warn("Couldn't parse avatar_url from DB, using default or localStorage:", parseError);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Unexpected error fetching session or profile:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    getProfile();
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        getProfile();
-      } else {
-        setUserName('Apprenant NdaLang');
-        setTotalXP(0);
-        setTotalCoins(0);
-      }
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [getProfile]);
 
   const scoresByLanguage = useMemo(() => {
     const completedLessonsData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_COMPLETED_LESSONS_KEY) || '[]');
@@ -196,60 +148,25 @@ export default function ProfilePage() {
     setUserName(e.target.value);
   };
 
-  const handleSaveName = async () => {
+  const handleSaveName = () => {
     setIsEditingName(false);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ username: userName })
-          .eq('id', user.id);
-
-        if (updateError) {
-          console.error('Error updating username:', updateError.message);
-          alert("Error saving name.");
-        } else {
-          const newAvatarConfig = { ...avatarConfig, seed: userName || 'default-user' };
-          setAvatarConfig(newAvatarConfig);
-          localStorage.setItem(LOCAL_STORAGE_AVATAR_CONFIG_KEY, JSON.stringify(newAvatarConfig));
-          const { error: avatarUpdateError } = await supabase
-            .from('profiles')
-            .update({ avatar_url: JSON.stringify(newAvatarConfig) })
-            .eq('id', user.id);
-          if (avatarUpdateError) {
-            console.error('Error updating avatar URL:', avatarUpdateError.message);
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Error saving name or avatar:', err);
-      alert("An unexpected error occurred while saving.");
-    }
+    localStorage.setItem(LOCAL_STORAGE_USERNAME_KEY, userName);
+    
+    // Mettre à jour la graine de l'avatar avec le nouveau nom
+    const newAvatarConfig = { ...avatarConfig, seed: userName || 'default-user' };
+    setAvatarConfig(newAvatarConfig);
+    localStorage.setItem(LOCAL_STORAGE_AVATAR_CONFIG_KEY, JSON.stringify(newAvatarConfig));
   };
 
-  const handleCancelEdit = async () => {
-    await getProfile();
+  const handleCancelEdit = () => {
+    setUserName(localStorage.getItem(LOCAL_STORAGE_USERNAME_KEY) || 'Apprenant NdaLang');
     setIsEditingName(false);
   };
 
-  const handleAvatarChange = async (part: keyof AvatarConfig, value: string) => {
+  const handleAvatarChange = (part: keyof AvatarConfig, value: string) => {
     const newConfig = { ...avatarConfig, [part]: value };
     setAvatarConfig(newConfig);
     localStorage.setItem(LOCAL_STORAGE_AVATAR_CONFIG_KEY, JSON.stringify(newConfig));
-
-    try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            const { error } = await supabase
-                .from('profiles')
-                .update({ avatar_url: JSON.stringify(newConfig) })
-                .eq('id', user.id);
-            if (error) console.error('Error updating avatar_url in DB:', error.message);
-        }
-    } catch (err) {
-        console.error('Error fetching user for avatar update:', err);
-    }
   };
 
   const handleAddFriendClick = () => {
