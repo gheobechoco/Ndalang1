@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 // Définition des props pour le composant
 interface FloatingBubblesBackgroundProps {
   // Mise à jour pour inclure 'myene' et supprimer 'massango'/'massango-new'
-  currentLessonLanguageCode: 'fang' | 'nzebi' | 'myene' | 'fr';
+  currentLessonLanguageCode: 'fang' | 'guissir' | 'myene' | 'fr';
 }
 
 const FloatingBubblesBackground: React.FC<FloatingBubblesBackgroundProps> = ({ currentLessonLanguageCode }) => {
@@ -16,7 +16,7 @@ const FloatingBubblesBackground: React.FC<FloatingBubblesBackgroundProps> = ({ c
     switch (currentLessonLanguageCode) {
       case 'fang':
         return ['rgba(255, 165, 0, 0.4)', 'rgba(255, 200, 0, 0.4)', 'rgba(255, 180, 0, 0.4)']; // Tons orangés
-      case 'nzebi':
+      case 'guissir':
         return ['rgba(0, 128, 0, 0.4)', 'rgba(50, 205, 50, 0.4)', 'rgba(34, 139, 34, 0.4)']; // Tons verts
       case 'myene': // Nouvelle couleur pour Myene
         return ['rgba(138, 43, 226, 0.4)', 'rgba(186, 85, 211, 0.4)', 'rgba(147, 112, 219, 0.4)']; // Tons violets

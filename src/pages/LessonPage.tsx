@@ -1,17 +1,17 @@
 // src/pages/LessonPage.tsx
 
-import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect, useMemo, useRef } from "react";
-import { lessons } from "../data/lessons";
-import { quizzes } from "../data/quizzes"; // 'type QuizQuestion' a été supprimé car non directement utilisé ici
-import Quiz from "../components/Quiz";
-import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/solid';
-import { MicrophoneIcon, StopIcon, PlayIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
-import YouTubePlayer from '../components/YouTubePlayer';
-import { Player } from '@lottiefiles/react-lottie-player';
-import FloatingBubblesBackground from '../components/FloatingBubblesBackground';
-import QuizFeedbackModal from '../components/QuizFeedbackModal';
-import AudioPlayer from '../components/AudioPlayer';
+  import { useParams, useNavigate } from "react-router-dom";
+  import { useState, useEffect, useMemo, useRef } from "react";
+  import { lessons } from "../data/lessons";
+  import { quizzes } from "../data/quizzes";
+  import Quiz from "../components/Quiz";
+  import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/solid';
+  import { MicrophoneIcon, StopIcon, PlayIcon, ArrowPathIcon } from '@heroicons/react/24/solid';
+  import YouTubePlayer from '../components/YouTubePlayer';
+  import { Player } from '@lottiefiles/react-lottie-player';
+  import FloatingBubblesBackground from '../components/FloatingBubblesBackground';
+  import QuizFeedbackModal from '../components/QuizFeedbackModal';
+  import AudioPlayer from '../components/AudioPlayer';
 
 const LOCAL_STORAGE_TOTAL_SCORE_KEY = 'ndalang_total_score';
 const LOCAL_STORAGE_COMPLETED_LESSONS_KEY = 'ndalang_completed_lessons';
@@ -51,17 +51,16 @@ export default function LessonPage() {
     coinsEarned: number;
   } | null>(null);
 
-  // Déplacer les Hooks useMemo et useEffect AVANT le return conditionnel
-  const languageDisplayName = useMemo(() => {
-    const langCode = lesson?.languageCode || 'fr';
-    switch (langCode) {
-      case 'fang': return 'Fang';
-      case 'nzebi': return 'Nzébi';
-      case 'myene': return 'Myene';
-      case 'fr': return 'Français';
-      default: return 'Langue';
-    }
-  }, [lesson]);
+    const languageDisplayName = useMemo(() => {
+      const langCode = lesson?.languageCode || 'fr';
+      switch (langCode) {
+        case 'fang': return 'Fang';
+        case 'nzebi': return 'Nzébi';
+        case 'myene': return 'Myene';
+        case 'fr': return 'Français';
+        default: return 'Langue';
+      }
+    }, [lesson]);
 
   const quizStartAudio = useMemo(() => new Audio('/audios/marimba-bloop-3-188151.mp3'), []);
 
@@ -327,66 +326,66 @@ export default function LessonPage() {
       <div className="max-w-4xl w-full mx-auto p-4 relative z-10 bg-white bg-opacity-80 rounded-lg shadow-lg my-8 sm:p-6 md:p-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-center mb-4">{lesson.title}</h1>
 
-        {!showQuiz && (
-          <>
-            {lesson.youtubeVideoId && (
-              <div className="mb-6 bg-gray-50 p-4 rounded-lg shadow-sm">
-                <h2 className="text-xl sm:text-2xl font-semibold mb-3 text-center">Regardez la vidéo de la leçon : {lesson.title}</h2>
-                <div className="aspect-w-16 aspect-h-9 w-full"> {/* Utilisation de classes de ratio d'aspect */}
-                  <YouTubePlayer videoId={lesson.youtubeVideoId} title={`Vidéo de la leçon : ${lesson.title}`} />
+          {!showQuiz && (
+            <>
+              {lesson.youtubeVideoId && (
+                <div className="mb-6 bg-gray-50 p-4 rounded-lg shadow-sm">
+                  <h2 className="text-xl sm:text-2xl font-semibold mb-3 text-center">Regardez la vidéo de la leçon : {lesson.title}</h2>
+                  <div className="aspect-w-16 aspect-h-9 w-full"> {/* Utilisation de classes de ratio d'aspect */}
+                    <YouTubePlayer videoId={lesson.youtubeVideoId} title={`Vidéo de la leçon : ${lesson.title}`} />
+                  </div>
+                  <p className="text-center text-gray-600 mt-2 text-sm sm:text-base italic">
+                    Cette saynète vous aidera à comprendre les mots et phrases en contexte.
+                    Regardez-la avant de passer aux exercices et au quiz !
+                  </p>
                 </div>
-                <p className="text-center text-gray-600 mt-2 text-sm sm:text-base italic">
-                  Cette saynète vous aidera à comprendre les mots et phrases en contexte.
-                  Regardez-la avant de passer aux exercices et au quiz !
-                </p>
-              </div>
-            )}
+              )}
 
-            {/* Conteneur pour le tableau réactif */}
-            <div className="overflow-x-auto rounded-lg shadow-md mb-6">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
-                    <th className="py-3 px-6 text-left border-b border-gray-300">Français</th>
-                    <th className="py-3 px-6 text-left border-b border-gray-300">{languageDisplayName}</th>
-                    <th className="py-3 px-6 text-left border-b border-gray-300">Prononciation</th>
-                    <th className="py-3 px-6 text-center border-b border-gray-300">Audio</th>
-                    <th className="py-3 px-6 text-center border-b border-gray-300">Votre Prononciation</th>
-                  </tr>
-                </thead>
-                <tbody className="text-gray-600 text-sm font-light">
-                  {lesson.entries.map((entry, entryIndex) => (
-                    <tr key={entryIndex} className="border-b border-gray-200 hover:bg-gray-100">
-                      <td className="py-3 px-6 text-left whitespace-nowrap">{entry.french}</td>
-                      <td className="py-3 px-6 text-left whitespace-nowrap">{entry.vernacularTranslation}</td>
-                      <td className="py-3 px-6 text-left whitespace-nowrap">{entry.pronunciation}</td>
-                      <td className="py-3 px-6 text-center">
-                        {entry.audioFile ? (
-                          <AudioPlayer audioSrc={entry.audioFile} label="Écouter" />
-                        ) : (
-                          <span className="text-gray-400 italic">Pas encore</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-6 text-center">
-                        <div className="flex flex-col items-center justify-center space-y-2">
-                          {activeRecordingEntryIndex === entryIndex && isRecording ? (
-                            <button
-                              onClick={stopRecording}
-                              className="bg-red-500 text-white p-2 rounded-full inline-flex items-center justify-center animate-pulse shadow-md"
-                              aria-label="Arrêter l'enregistrement"
-                            >
-                              <StopIcon className="h-6 w-6" />
-                            </button>
+              {/* Conteneur pour le tableau réactif */}
+              <div className="overflow-x-auto rounded-lg shadow-md mb-6">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-200 text-gray-700 uppercase text-sm leading-normal">
+                      <th className="py-3 px-6 text-left border-b border-gray-300">Français</th>
+                      <th className="py-3 px-6 text-left border-b border-gray-300">{languageDisplayName}</th>
+                      <th className="py-3 px-6 text-left border-b border-gray-300">Prononciation</th>
+                      <th className="py-3 px-6 text-center border-b border-gray-300">Audio</th>
+                      <th className="py-3 px-6 text-center border-b border-gray-300">Votre Prononciation</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-gray-600 text-sm font-light">
+                    {lesson.entries.map((entry, entryIndex) => (
+                      <tr key={entryIndex} className="border-b border-gray-200 hover:bg-gray-100">
+                        <td className="py-3 px-6 text-left whitespace-nowrap">{entry.french}</td>
+                        <td className="py-3 px-6 text-left whitespace-nowrap">{entry.vernacularTranslation}</td>
+                        <td className="py-3 px-6 text-left whitespace-nowrap">{entry.pronunciation}</td>
+                        <td className="py-3 px-6 text-center">
+                          {entry.audioFile ? (
+                            <AudioPlayer audioSrc={entry.audioFile} label="Écouter" />
                           ) : (
-                            <button
-                              onClick={() => startRecording(entryIndex)}
-                              disabled={isRecording && activeRecordingEntryIndex !== entryIndex}
-                              className="bg-blue-500 text-white p-2 rounded-full inline-flex items-center justify-center disabled:opacity-50 shadow-md hover:bg-blue-600 transition-colors"
-                              aria-label="Démarrer l'enregistrement"
-                            >
-                              <MicrophoneIcon className="h-6 w-6" />
-                            </button>
+                            <span className="text-gray-400 italic">Pas encore</span>
                           )}
+                        </td>
+                        <td className="py-3 px-6 text-center">
+                          <div className="flex flex-col items-center justify-center space-y-2">
+                            {activeRecordingEntryIndex === entryIndex && isRecording ? (
+                              <button
+                                onClick={stopRecording}
+                                className="bg-red-500 text-white p-2 rounded-full inline-flex items-center justify-center animate-pulse shadow-md"
+                                aria-label="Arrêter l'enregistrement"
+                              >
+                                <StopIcon className="h-6 w-6" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => startRecording(entryIndex)}
+                                disabled={isRecording && activeRecordingEntryIndex !== entryIndex}
+                                className="bg-blue-500 text-white p-2 rounded-full inline-flex items-center justify-center disabled:opacity-50 shadow-md hover:bg-blue-600 transition-colors"
+                                aria-label="Démarrer l'enregistrement"
+                              >
+                                <MicrophoneIcon className="h-6 w-6" />
+                              </button>
+                            )}
 
                           {activeRecordingEntryIndex === entryIndex && recordedAudioURL && !isRecording && (
                             <div className="flex items-center justify-center space-x-2">
